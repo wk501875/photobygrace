@@ -4,7 +4,7 @@
  * 1) 구글 드라이브에 사진을 모을 폴더를 만들고, 주소창의 폴더 ID를 아래 FOLDER_ID에 넣습니다.
  *    예: https://drive.google.com/drive/folders/1AbCdEf...  →  "1AbCdEf..."
  * 2) 배포 → 새 배포 → 유형 "웹 앱", 실행 사용자 "나", 액세스 권한 "모든 사용자".
- * 3) 나온 웹 앱 URL(…/exec)을 photobooth/config.js 의 uploadUrl 에 넣습니다.
+ * 3) 나온 웹 앱 URL(…/exec)을 config.js 의 uploadUrl 에 넣습니다.
  */
 const FOLDER_ID = "여기에_폴더_ID";
 const TITLE = "Here by Grace";
