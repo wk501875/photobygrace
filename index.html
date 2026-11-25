@@ -38,7 +38,10 @@
   .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
   .flash.on { animation: flash .45s ease-out; }
   @keyframes flash { from { opacity: .95 } to { opacity: 0 } }
-  .nocam { color: #ddd; text-align: center; padding: 24px; line-height: 1.6; }
+  .nocam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+           color: #ddd; text-align: center; padding: 24px; line-height: 1.6; }
+  .nocam p { margin: 0; max-width: 36em; }
+  .nocam .row { flex: 0 0 auto; width: min(100%, 420px); }
 
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
            display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; }
@@ -80,7 +83,15 @@
     <div class="shotno" id="shotno" hidden></div>
     <div class="count" id="count" aria-live="assertive"></div>
     <div class="flash" id="flash"></div>
-    <div class="nocam" id="nocam" hidden></div>
+    <div class="nocam" id="nocam" hidden>
+      <p id="nocamMsg"></p>
+      <p>카메라 없이도 샘플 사진이나 내 사진으로 결과물을 미리 볼 수 있어요.</p>
+      <div class="row">
+        <button class="btn" id="sampleBtn" type="button">샘플 사진으로 체험</button>
+        <button class="btn ghost" id="pickBtn" type="button" style="color:#fff">사진 4장 올리기</button>
+      </div>
+      <input id="pickInput" type="file" accept="image/*" multiple hidden>
+    </div>
   </section>
 
   <aside class="panel">
@@ -163,7 +174,7 @@
       await video.play().catch(() => {});
     } catch (e) {
       $("nocam").hidden = false;
-      $("nocam").textContent = "카메라를 켤 수 없어요. 브라우저 주소창의 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
+      $("nocamMsg").textContent = "카메라를 켤 수 없어요. 브라우저 주소창의 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
     }
     video.classList.toggle("mirror", !!S.mirror);
   }
@@ -182,10 +193,36 @@
     } catch {}
   }
 
-  function grab() {
-    const slot = C.slots[0] || { w: 1040, h: 694 };
-    const ratio = slot.w / slot.h;
+  const slotRatio = () => { const s = C.slots[0] || { w: 1040, h: 694 }; return s.w / s.h; };
+
+  // 카메라가 없을 때 쓰는 샘플 컷
+  const SAMPLE_COLORS = ["#e53935", "#fb8c00", "#43a047", "#3949ab"];
+  function sampleShot(i) {
+    const c = document.createElement("canvas"); c.width = 1560; c.height = Math.round(1560 / slotRatio());
+    const ctx = c.getContext("2d");
+    const g = ctx.createLinearGradient(0, 0, c.width, c.height);
+    g.addColorStop(0, SAMPLE_COLORS[i % 4]); g.addColorStop(1, "#1d2030");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "160px 'Gowun Dodum', sans-serif"; ctx.fillText("샘플 " + (i + 1), c.width / 2, c.height / 2);
+    return c;
+  }
+
+  // 올린 사진을 사진 칸 비율에 맞춰 가운데를 잘라 냄
+  function cropToShot(img) {
+    const ratio = slotRatio(), c = document.createElement("canvas");
+    c.width = 1560; c.height = Math.round(1560 / ratio);
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    let sw = iw, sh = iw / ratio;
+    if (sh > ih) { sh = ih; sw = ih * ratio; }
+    c.getContext("2d").drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+    return c;
+  }
+
+  function grab(i) {
+    const ratio = slotRatio();
     const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw) return sampleShot(i);
     const c = document.createElement("canvas");
     c.width = 1560; c.height = Math.round(1560 / ratio);
     const ctx = c.getContext("2d");
@@ -204,7 +241,7 @@
     }
     $("count").textContent = "";
     beep(990, 0.15);
-    shots[i] = grab();
+    shots[i] = grab(i);
     const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
     renderThumbs();
     await sleep(700);
@@ -277,12 +314,15 @@
     $("resultImg").src = current.url;
     $("shootView").hidden = true; $("doneView").hidden = false;
     $("qr").innerHTML = "";
-    if (S.autoSave) saveLocal();
+    if (S.autoSave && !window.claude) saveLocal();   // 아티팩트 미리보기에서는 자동 저장 안 함
     upload();
   }
 
-  function saveLocal() {
+  async function saveLocal() {
     if (!current) return;
+    // Claude 아티팩트 안에서는 일반 다운로드가 막혀 있어 downloads 기능을 씀
+    const dl = window.claude ? await window.claude.use("downloads").catch(() => null) : null;
+    if (dl) { try { await dl.save({ filename: current.name, data: current.blob }); } catch (e) { console.warn(e); } return; }
     const a = document.createElement("a");
     a.href = current.url; a.download = current.name; document.body.appendChild(a); a.click(); a.remove();
   }
@@ -343,6 +383,21 @@
   // ---- 이벤트 ----
   $("startBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
   $("nextBtn").onclick = reset;
+  $("sampleBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
+  $("pickBtn").onclick = () => $("pickInput").click();
+  $("pickInput").onchange = async (e) => {
+    const files = [...e.target.files].slice(0, 4); e.target.value = "";
+    if (!files.length || busy) return;
+    reset();
+    for (let i = 0; i < 4; i++) {
+      const f = files[i % files.length], url = URL.createObjectURL(f);
+      const img = new Image();
+      await new Promise((res) => { img.onload = img.onerror = res; img.src = url; });
+      shots[i] = img.naturalWidth ? cropToShot(img) : sampleShot(i);
+      URL.revokeObjectURL(url);
+    }
+    renderThumbs(); finish();
+  };
   $("saveBtn").onclick = saveLocal;
   $("retryBtn").onclick = upload;
   document.addEventListener("keydown", (e) => {
