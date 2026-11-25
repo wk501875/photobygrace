@@ -4,7 +4,7 @@
 인쇄는 하지 않고, 성도분들이 QR을 찍어 각자 휴대폰에 사진을 받아 가요.
 
 ```
-photobooth/
+photobygrace/
 ├─ index.html          촬영 화면 (크롬으로 열기)
 ├─ config.js           행사 문구·프레임·사진 칸 위치 설정
 ├─ vendor/qrcode.js    QR 생성 라이브러리 (인터넷 없이 동작)
@@ -29,7 +29,7 @@ photobooth/
 
 ## 2. 행사 당일 실행
 
-1. 노트북에서 `photobooth` 폴더를 열고 `index.html`을 **크롬**으로 엽니다.
+1. 노트북에서 `photobygrace` 폴더를 열고 `index.html`을 **크롬**으로 엽니다.
    카메라 권한을 물으면 **허용**.
 2. 외장 웹캠을 쓰면 **설정 → 카메라**에서 고릅니다.
 3. 큰 모니터나 TV에 연결하고 `F11`로 전체 화면.
