@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Here by Grace 네컷</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Caveat:wght@600&display=swap">
+<style>
+  /* 키오스크 한 화면: 왼쪽 카메라, 오른쪽 안내/결과 패널 (좁으면 세로로) */
+  :root {
+    --bg: #f4f5f8; --panel: #ffffff; --fg: #1d2030; --muted: #6b7083;
+    --line: #e1e3ea; --accent: #3949ab; --accent-fg: #ffffff; --ok: #2e7d32; --warn: #c62828;
+    --body: "Gowun Dodum", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --display: "Caveat", "Gowun Dodum", cursive;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #12141c; --panel: #1c1f2b; --fg: #eceef5; --muted: #9a9fb3; --line: #2c3040; --accent: #7986cb; --accent-fg: #0f1120; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #12141c; --panel: #1c1f2b; --fg: #eceef5; --muted: #9a9fb3; --line: #2c3040; --accent: #7986cb; --accent-fg: #0f1120; color-scheme: dark }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; }
+  .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px;
+         padding-block: 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+  @media (max-width: 860px) { .app { grid-template-columns: 1fr; height: auto; } }
+
+  .stage { position: relative; background: #000; border-radius: 16px; overflow: hidden; min-height: 300px;
+           display: grid; place-items: center; }
+  /* 미리보기를 결과 사진과 같은 3:2로 잘라 보여 줌 */
+  .stage video { width: 100%; max-height: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .stage video.mirror { transform: scaleX(-1); }
+  .count { position: absolute; inset: 0; display: grid; place-items: center; font-size: min(36vw, 320px);
+           color: #fff; font-family: var(--display); text-shadow: 0 6px 30px rgba(0,0,0,.5); pointer-events: none; }
+  .shotno { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,.55); color: #fff;
+            padding: 8px 14px; border-radius: 999px; font-size: 18px; }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
+  .flash.on { animation: flash .45s ease-out; }
+  @keyframes flash { from { opacity: .95 } to { opacity: 0 } }
+  .nocam { color: #ddd; text-align: center; padding: 24px; line-height: 1.6; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+           display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; }
+  h1 { font-family: var(--display); font-size: 52px; line-height: 1; margin: 0; text-wrap: balance; }
+  .sub { color: var(--muted); margin: 4px 0 0; }
+  .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .thumbs button { aspect-ratio: 3 / 2; border: 2px dashed var(--line); border-radius: 8px; background: var(--bg) center / cover no-repeat;
+                   color: var(--muted); font: inherit; cursor: pointer; padding: 0; }
+  .thumbs button.filled { border-style: solid; border-color: var(--accent); color: transparent; }
+  .btn { font: inherit; font-size: 20px; border: 0; border-radius: 12px; padding: 16px; cursor: pointer;
+         background: var(--accent); color: var(--accent-fg); }
+  .btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); font-size: 16px; padding: 12px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:focus-visible, .thumbs button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 0; }
+  .hint { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; }
+
+  .result { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; }
+  .result img { width: 100%; border-radius: 6px; border: 1px solid var(--line); }
+  .qrbox { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+  .qrbox canvas { width: 100%; max-width: 220px; height: auto; background: #fff; padding: 10px; border-radius: 10px; }
+  .status { font-size: 15px; }
+  .status.ok { color: var(--ok); } .status.err { color: var(--warn); }
+
+  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--fg); width: min(520px, calc(100% - 32px)); }
+  dialog label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
+  dialog input, dialog select { font: inherit; font-size: 15px; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  dialog form { display: grid; gap: 14px; }
+  .gear { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+          font: inherit; font-size: 13px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; opacity: .6; }
+  @media (prefers-reduced-motion: reduce) { .flash.on { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="stage" id="stage">
+    <video id="video" autoplay playsinline muted class="mirror"></video>
+    <div class="shotno" id="shotno" hidden></div>
+    <div class="count" id="count" aria-live="assertive"></div>
+    <div class="flash" id="flash"></div>
+    <div class="nocam" id="nocam" hidden></div>
+  </section>
+
+  <aside class="panel">
+    <div>
+      <h1 id="title">Here by Grace</h1>
+      <p class="sub" id="subtitle">성도교제의 밤</p>
+    </div>
+
+    <!-- 촬영 전/중 -->
+    <div id="shootView" style="display:flex;flex-direction:column;gap:16px">
+      <div class="thumbs" id="thumbs"></div>
+      <button class="btn" id="startBtn">촬영 시작 (4컷)</button>
+      <p class="hint">버튼을 누르면 <b id="secs">5</b>초마다 한 장씩 네 번 찍어요. 스페이스바나 엔터로도 시작할 수 있어요.</p>
+    </div>
+
+    <!-- 촬영 후 -->
+    <div id="doneView" hidden style="display:flex;flex-direction:column;gap:16px">
+      <div class="result">
+        <img id="resultImg" alt="완성된 네컷 사진">
+        <div class="qrbox">
+          <div id="qr"></div>
+          <div class="status" id="status" aria-live="polite"></div>
+        </div>
+      </div>
+      <p class="hint">작은 사진을 누르면 그 컷만 다시 찍을 수 있어요.</p>
+      <div class="thumbs" id="thumbs2"></div>
+      <div class="row">
+        <button class="btn ghost" id="retryBtn" hidden>업로드 다시 시도</button>
+        <button class="btn ghost" id="saveBtn">이 기기에 저장</button>
+      </div>
+      <button class="btn" id="nextBtn">다음 분 촬영하기</button>
+    </div>
+  </aside>
+</div>
+
+<button class="gear" id="gear">설정</button>
+<dialog id="settings">
+  <form method="dialog" id="settingsForm">
+    <strong>운영 설정</strong>
+    <label>카메라 <select id="camSel"></select></label>
+    <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15"></label>
+    <label><span><input id="setMirror" type="checkbox"> 좌우 반전 (셀카 모드)</span></label>
+    <label><span><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 자동 저장 (백업)</span></label>
+    <label>업로드 주소 (Apps Script 웹 앱 URL) <input id="setUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label>
+    <p class="hint">여기서 바꾼 값은 이 브라우저에만 기억되고, config.js보다 우선합니다.</p>
+    <div class="row"><button class="btn ghost" value="cancel">닫기</button><button class="btn" id="saveSettings" value="ok">저장</button></div>
+  </form>
+</dialog>
+
+<script src="config.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script>
+(() => {
+  const C = Object.assign({ slots: [], countdown: 5, mirror: true, jpegQuality: 0.9 }, window.BOOTH_CONFIG || {});
+  const W = 1200, H = 3600;                       // 결과 이미지 크기 (2x6인치 비율)
+  const $ = (id) => document.getElementById(id);
+
+  // ---- 설정 (localStorage가 있으면 config.js 위에 덮어씀) ----
+  const store = {
+    get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
+    set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
+  };
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: C.uploadUrl, autoSave: true, deviceId: "" }, store.get());
+
+  $("title").textContent = C.title || "Here by Grace";
+  $("subtitle").textContent = C.subtitle || "";
+
+  // ---- 카메라 ----
+  const video = $("video");
+  let stream = null;
+  async function startCamera() {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    $("nocam").hidden = true;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: S.deviceId ? { exact: S.deviceId } : undefined, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        audio: false,
+      });
+      video.srcObject = stream;
+      await video.play().catch(() => {});
+    } catch (e) {
+      $("nocam").hidden = false;
+      $("nocam").textContent = "카메라를 켤 수 없어요. 브라우저 주소창의 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
+    }
+    video.classList.toggle("mirror", !!S.mirror);
+  }
+
+  // ---- 촬영 ----
+  const shots = [null, null, null, null];        // 각 컷: 1040x694 비율 캔버스
+  let busy = false;
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  let audio;
+  function beep(freq, len) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = freq; g.gain.value = 0.08; o.connect(g).connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + len);
+    } catch {}
+  }
+
+  function grab() {
+    const slot = C.slots[0] || { w: 1040, h: 694 };
+    const ratio = slot.w / slot.h;
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const c = document.createElement("canvas");
+    c.width = 1560; c.height = Math.round(1560 / ratio);
+    const ctx = c.getContext("2d");
+    let sw = vw, sh = vw / ratio;
+    if (sh > vh) { sh = vh; sw = vh * ratio; }
+    if (S.mirror) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
+    if (vw) ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+    return c;
+  }
+
+  async function takeOne(i) {
+    $("shotno").hidden = false;
+    $("shotno").textContent = (i + 1) + " / 4";
+    for (let s = S.countdown; s > 0; s--) {
+      $("count").textContent = s; beep(660, 0.08); await sleep(1000);
+    }
+    $("count").textContent = "";
+    beep(990, 0.15);
+    shots[i] = grab();
+    const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
+    renderThumbs();
+    await sleep(700);
+  }
+
+  async function runSession(indices) {
+    if (busy) return;
+    busy = true; $("startBtn").disabled = true; $("nextBtn").disabled = true;
+    try {
+      for (const i of indices) await takeOne(i);
+    } finally {
+      $("shotno").hidden = true; busy = false;
+      $("startBtn").disabled = false; $("nextBtn").disabled = false;
+    }
+    if (shots.every(Boolean)) finish();
+  }
+
+  // ---- 프레임 합성 ----
+  let frameImg = null;
+  if (C.frameImage) {
+    const im = new Image();
+    im.onload = () => { frameImg = im; };
+    im.onerror = () => console.warn("프레임 이미지를 불러오지 못했어요:", C.frameImage);
+    im.src = C.frameImage;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function compose() {
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+    C.slots.forEach((s, i) => {
+      ctx.save(); roundRect(ctx, s.x, s.y, s.w, s.h, frameImg ? 0 : 18); ctx.clip();
+      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h);
+      else { ctx.fillStyle = "#e8e9ee"; ctx.fillRect(s.x, s.y, s.w, s.h); }
+      ctx.restore();
+    });
+    if (frameImg) {
+      ctx.drawImage(frameImg, 0, 0, W, H);
+    } else {
+      // 기본 프레임: 하단 글자만 (디자인은 frames/frame.png로 교체)
+      const top = Math.max(...C.slots.map(s => s.y + s.h));
+      const mid = top + (H - top) / 2;
+      ctx.fillStyle = "#1d2030"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "600 150px Caveat, cursive"; ctx.fillText(C.title || "", W / 2, mid - 70);
+      ctx.fillStyle = "#6b7083";
+      ctx.font = "48px 'Gowun Dodum', sans-serif"; ctx.fillText(C.subtitle || "", W / 2, mid + 60);
+      ctx.font = "38px 'Gowun Dodum', sans-serif"; ctx.fillText(C.footer || "", W / 2, mid + 130);
+    }
+    return c;
+  }
+
+  // ---- 결과 / 업로드 / QR ----
+  let current = null;   // { blob, url, name }
+  function stamp() {
+    const d = new Date(), p = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+  }
+
+  async function finish() {
+    await document.fonts.ready.catch(() => {});
+    const canvas = compose();
+    const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
+    if (current) URL.revokeObjectURL(current.url);
+    current = { blob, url: URL.createObjectURL(blob), name: "herebygrace-" + stamp() + ".jpg" };
+    $("resultImg").src = current.url;
+    $("shootView").hidden = true; $("doneView").hidden = false;
+    $("qr").innerHTML = "";
+    if (S.autoSave) saveLocal();
+    upload();
+  }
+
+  function saveLocal() {
+    if (!current) return;
+    const a = document.createElement("a");
+    a.href = current.url; a.download = current.name; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function setStatus(text, cls) { const s = $("status"); s.textContent = text; s.className = "status " + (cls || ""); }
+
+  async function upload() {
+    $("retryBtn").hidden = true;
+    if (!S.uploadUrl) { setStatus("업로드 주소가 설정되지 않아 QR을 만들 수 없어요. (설정 → 업로드 주소)", "err"); return; }
+    setStatus("사진을 올리는 중이에요…");
+    try {
+      const b64 = await new Promise((res, rej) => {
+        const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(current.blob);
+      });
+      const r = await fetch(S.uploadUrl, { method: "POST", body: JSON.stringify({ name: current.name, data: b64 }) });
+      const j = await r.json();
+      if (!j.ok || !j.page) throw new Error(j.error || "응답 오류");
+      showQR(j.page);
+      setStatus("휴대폰 카메라로 QR을 찍으면 사진을 받을 수 있어요!", "ok");
+    } catch (e) {
+      console.error(e);
+      setStatus("업로드에 실패했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.", "err");
+      $("retryBtn").hidden = false;
+    }
+  }
+
+  function showQR(text) {
+    const qr = qrcode(0, "M"); qr.addData(text); qr.make();
+    const n = qr.getModuleCount(), cell = 8, c = document.createElement("canvas");
+    c.width = c.height = n * cell; const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = "#000";
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) ctx.fillRect(k * cell, r * cell, cell, cell);
+    c.setAttribute("aria-label", "사진 다운로드 QR 코드");
+    $("qr").innerHTML = ""; $("qr").appendChild(c);
+  }
+
+  // ---- 썸네일 ----
+  function renderThumbs() {
+    for (const id of ["thumbs", "thumbs2"]) {
+      const box = $(id); box.innerHTML = "";
+      shots.forEach((s, i) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = i + 1;
+        b.setAttribute("aria-label", (i + 1) + "번째 컷" + (s ? " 다시 찍기" : ""));
+        if (s) { b.classList.add("filled"); b.style.backgroundImage = "url(" + s.toDataURL("image/jpeg", 0.5) + ")"; }
+        b.disabled = id === "thumbs";
+        b.onclick = () => { if (!busy && s) { $("doneView").hidden = true; $("shootView").hidden = false; runSession([i]); } };
+        box.appendChild(b);
+      });
+    }
+  }
+
+  function reset() {
+    shots.fill(null); renderThumbs();
+    $("doneView").hidden = true; $("shootView").hidden = false;
+  }
+
+  // ---- 이벤트 ----
+  $("startBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
+  $("nextBtn").onclick = reset;
+  $("saveBtn").onclick = saveLocal;
+  $("retryBtn").onclick = upload;
+  document.addEventListener("keydown", (e) => {
+    if ($("settings").open || busy) return;
+    if (e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      if (!$("shootView").hidden) $("startBtn").click(); else $("nextBtn").click();
+    }
+  });
+
+  $("gear").onclick = async () => {
+    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror;
+    $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || "";
+    const sel = $("camSel"); sel.innerHTML = "";
+    try {
+      (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput").forEach((d, i) => {
+        const o = document.createElement("option"); o.value = d.deviceId; o.textContent = d.label || "카메라 " + (i + 1);
+        if (d.deviceId === S.deviceId) o.selected = true; sel.appendChild(o);
+      });
+    } catch {}
+    $("settings").showModal();
+  };
+  $("settingsForm").addEventListener("submit", (e) => {
+    if (e.submitter && e.submitter.value !== "ok") return;
+    const camChanged = $("camSel").value && $("camSel").value !== S.deviceId;
+    S = Object.assign(S, {
+      countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
+      mirror: $("setMirror").checked, autoSave: $("setAutoSave").checked,
+      uploadUrl: $("setUrl").value.trim(), deviceId: $("camSel").value || S.deviceId,
+    });
+    store.set(S); $("secs").textContent = S.countdown;
+    video.classList.toggle("mirror", !!S.mirror);
+    if (camChanged) startCamera();
+  });
+
+  $("secs").textContent = S.countdown;
+  renderThumbs();
+  startCamera();
+})();
+</script>
+</body>
+</html>
