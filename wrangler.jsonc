@@ -1,0 +1,8 @@
+// Cloudflare Workers 정적 사이트 설정 — 저장소 루트의 파일을 그대로 배포합니다.
+{
+  "name": "photobygrace",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "."
+  }
+}
