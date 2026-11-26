@@ -215,8 +215,10 @@
   .mock.b i { background: #e4e4e4; }
   /* 홈 배경 루프 영상 (config.homeVideo): 가운데 정렬 타이틀 + 말씀 */
   .home { isolation: isolate; }
-  .home-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; z-index: -2; pointer-events: none;
-                filter: sepia(.28) saturate(.82) contrast(.96) brightness(.97); }
+  /* 색감은 영상 파일에 이미 입혀 둠 (태블릿에서 CSS 필터를 쓰면 끊겨요). 영상 두 개를 번갈아 틀어 반복 이음매가 안 끊기게 */
+  .home-bg { position: absolute; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; }
+  .home-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; opacity: 0; }
+  .home-video.on { opacity: 1; }
   .home.has-video { display: block; background: #b9ad9c; padding: 0; }
   .home.has-video::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
                             background: radial-gradient(ellipse 60% 48% at 50% 22%, rgba(255,246,228,.5), rgba(255,246,228,0) 70%),
@@ -239,17 +241,17 @@
   .hero.intro .hero-cta { animation: reveal 1.2s cubic-bezier(.2,.7,.2,1) 2.7s forwards, breathe 3.2s ease-in-out 4s infinite; }
   @keyframes reveal { from { opacity: 0; filter: blur(14px); transform: translateY(8px); } to { opacity: 1; filter: blur(0); transform: none; } }
   /* 대기 중 배경이 아주 천천히 줌인 */
-  .home.has-video .home-video { animation: drift 40s ease-in-out infinite alternate; transform-origin: 50% 40%; }
+  .home.has-video .home-bg { animation: drift 40s ease-in-out infinite alternate; transform-origin: 50% 40%; will-change: transform; }
   @keyframes drift { to { transform: scale(1.09); } }
-  @media (prefers-reduced-motion: reduce) { .hero.intro > * { animation: none; opacity: 1; } .home.has-video .home-video { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .hero.intro > * { animation: none; opacity: 1; } .home.has-video .home-bg { animation: none; } }
   .hero-cta { margin-top: auto; display: grid; gap: 6px; justify-items: center; border: 1px solid rgba(255,255,255,.55); border-radius: 999px; cursor: pointer;
-              padding: clamp(16px, 2.4vh, 24px) clamp(36px, 4vw, 54px); background: rgba(248,244,236,.62); color: #3A3029;
-              -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 18px 40px -22px rgba(40,30,20,.5); animation: breathe 3.2s ease-in-out infinite; }
+              padding: clamp(16px, 2.4vh, 24px) clamp(36px, 4vw, 54px); background: rgba(246,241,232,.8); color: #3A3029;
+              box-shadow: 0 18px 40px -22px rgba(40,30,20,.5); animation: breathe 3.2s ease-in-out infinite; }
   .hero-cta b { font-family: "Italiana", Georgia, serif; font-weight: 400; font-size: clamp(22px, min(2.4vw, 3.4vh), 32px); letter-spacing: .2em; text-transform: uppercase; padding-left: .2em; }
   .hero-cta span { font-family: "Gowun Batang", serif; font-size: clamp(13px, min(1.2vw, 1.8vh), 16px); letter-spacing: .12em; color: #6A5D52; }
   @keyframes breathe { 50% { transform: scale(1.025); box-shadow: 0 22px 46px -22px rgba(40,30,20,.6); } }
   .fs-btn { position: absolute; z-index: 2; top: max(18px, env(safe-area-inset-top, 0px)); right: max(18px, env(safe-area-inset-right, 0px)); width: 46px; height: 46px; border-radius: 999px;
-            border: 0; display: grid; place-items: center; background: rgba(248,244,236,.55); color: #3A3029; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+            border: 0; display: grid; place-items: center; background: rgba(246,241,232,.7); color: #3A3029; cursor: pointer; }
   .fs-btn svg { width: 22px; height: 22px; }
   @media (orientation: portrait) {
     .hero { padding-top: max(11vh, env(safe-area-inset-top, 0px)); }
@@ -357,7 +359,10 @@
 
 
 <section class="home" id="home" aria-label="홈 화면">
-  <video class="home-video" id="homeVideo" muted loop playsinline preload="auto" aria-hidden="true" hidden></video>
+  <div class="home-bg" id="homeBg" aria-hidden="true" hidden>
+    <video class="home-video on" muted playsinline preload="auto"></video>
+    <video class="home-video" muted playsinline preload="auto"></video>
+  </div>
   <div class="hero" id="hero" hidden>
     <h1 class="hero-title" id="heroTitle"></h1>
     <p class="hero-verse" id="heroVerse"></p>
@@ -1138,12 +1143,28 @@
   }
   function reset() { shots = new Array(N()).fill(null); takes = []; picks = []; verseNow = null; liveSrc = "shots"; uploaded = false; renderThumbs(); show("idle"); }
   // 홈 배경 루프 영상: 홈 화면일 때만 재생 (배터리·카메라 성능)
-  const homeVideo = $("homeVideo");
+  const vids = [...document.querySelectorAll("#homeBg video")];
+  let vOn = 0, homeVidOk = false;
   if (C.homeVideo) {
-    homeVideo.poster = C.homePoster || ""; homeVideo.src = C.homeVideo; homeVideo.hidden = false;
-    $("home").classList.add("has-video"); $("hero").hidden = false;
-    homeVideo.onerror = () => { homeVideo.hidden = true; $("home").classList.remove("has-video"); $("hero").hidden = true; };
-    if (!$("home").hidden) homeVideo.play().catch(() => {});
+    homeVidOk = true; $("homeBg").hidden = false; $("home").classList.add("has-video"); $("hero").hidden = false;
+    vids.forEach((v, i) => {
+      if (i === 0) v.poster = C.homePoster || "";
+      v.src = C.homeVideo;
+      v.onerror = () => { homeVidOk = false; $("homeBg").hidden = true; $("home").classList.remove("has-video"); $("hero").hidden = true; };
+      // 끝나기 직전에 다른 영상을 처음부터 틀고, 실제로 재생되기 시작하면 바꿔 보여 줌
+      v.addEventListener("timeupdate", () => {
+        if (i !== vOn || v.paused || !v.duration || v.duration - v.currentTime > .3) return;
+        const nx = vids[1 - i];
+        if (!nx.paused) return;
+        nx.currentTime = 0;
+        nx.play().then(() => {
+          vOn = 1 - i; nx.classList.add("on"); v.classList.remove("on");
+          setTimeout(() => { v.pause(); v.currentTime = 0; }, 120);
+        }).catch(() => {});
+      });
+      v.addEventListener("ended", () => { if (i === vOn && vids[1 - i].paused) { v.currentTime = 0; v.play().catch(() => {}); } });   // 혹시 못 바꿨으면 그냥 처음부터
+    });
+    if (!$("home").hidden) vids[0].play().catch(() => {});
   }
   // 홈 말씀 (config.homeVerse): 제목 → 말씀 → 출처가 흐릿했다 또렷하게 차례로, 이어서 시작 버튼
   const HVERSE = C.homeVerse || { text: "나의 나 된 것은 하나님의 은혜라", ref: "고린도전서 15:10" };
@@ -1157,7 +1178,7 @@
   const syncFs = () => { $("fsBtn").hidden = !fsReq || isFs(); };
   $("fsBtn").onclick = (e) => { e.stopPropagation(); try { const r = fsReq.call(fsEl); if (r && r.catch) r.catch(() => {}); } catch {} };
   document.addEventListener("fullscreenchange", syncFs); document.addEventListener("webkitfullscreenchange", syncFs); syncFs();
-  function homeVideoPlay(on) { if (!C.homeVideo || homeVideo.hidden) return; if (on) homeVideo.play().catch(() => {}); else homeVideo.pause(); }
+  function homeVideoPlay(on) { if (!homeVidOk) return; if (on) vids[vOn].play().catch(() => {}); else vids.forEach(v => v.pause()); }
   function showHome(on) {
     $("home").hidden = !on; homeVideoPlay(on); if (on) { heroIntro(); syncFs(); }
     if (on) { $("pick").hidden = true; layout = defLayout(); frame = defStyle(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
