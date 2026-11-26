@@ -1,8 +1,9 @@
 // 인생네컷 설정 파일 — 행사 전에 여기만 고치면 됩니다.
 window.BOOTH_CONFIG = {
-  // Google Apps Script 웹 앱 주소 (README의 "QR 다운로드 설정" 참고).
-  // 비워 두면 QR 없이 이 기기에만 저장됩니다.
-  uploadUrl: "",
+  // 사진 업로드 주소. 기본값은 Cloudflare R2 (functions/api/upload.js).
+  // 구글 드라이브로 바꾸려면 Apps Script 웹 앱 주소(https://script.google.com/.../exec)를 넣으세요.
+  // 행사 코드는 여기 적지 말고, 촬영 노트북의 "설정 → 행사 코드"에 입력합니다.
+  uploadUrl: "/api/upload",
 
   // 프레임 하단에 들어갈 글자 (frameImage를 쓰면 무시됩니다)
   title: "Here by Grace",
