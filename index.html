@@ -135,10 +135,49 @@
   .hint { color: var(--mute); font-size: 14px; margin: 0; line-height: 1.5; }
   .bye { color: var(--mute); font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
 
+  /* ---------- 홈 화면: 타이틀을 화면 가득 ---------- */
+  .home { position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer; display: grid;
+          grid-template-columns: minmax(0, 1fr) auto minmax(0, .8fr); gap: 0;
+          padding-block: max(28px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-bottom, 0px));
+          padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
+  .home-main { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding-right: 32px; }
+  .home-title { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: 0;
+                font-size: min(22vh, 15vw); line-height: .9; letter-spacing: .005em; }
+  .home-title span { display: block; }
+  .home-sub { margin: 22px 0 0; font-size: 22px; color: var(--mute); }
+  .home-sub b { color: var(--ink); font-weight: 700; }
+  .home-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 14px; margin-top: 28px; border: 0; border-radius: 999px;
+              padding: 22px 34px; background: var(--ink); color: #fff; font-size: 22px; font-weight: 700; cursor: pointer; }
+  .home-cta::after { content: "→"; font-family: var(--latin); font-weight: 500; }
+  .home-cta .dot { width: 10px; height: 10px; border-radius: 999px; background: #fff; animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .band { background: var(--ink); color: #fff; border-radius: 4px; width: 64px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 22px 0; }
+  .band span { writing-mode: vertical-rl; font-family: var(--display); font-size: 22px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .home-art { position: relative; min-width: 0; overflow: hidden; }
+  .mock { position: absolute; width: 44%; aspect-ratio: 1 / 3; background: #fff; padding: 5% 5% 0; display: grid; grid-template-rows: repeat(4, 1fr) .9fr; gap: 3.5%;
+          box-shadow: 0 30px 50px -25px rgba(0,0,0,.35); }
+  .mock i { background: var(--soft); display: grid; place-items: center; font-style: normal; font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .1em; color: #b8b8b8; }
+  .mock b { font-family: var(--display); font-weight: 400; font-size: clamp(14px, 1.6vw, 22px); line-height: 1; align-self: center; text-transform: uppercase; }
+  .mock.a { left: 12%; top: 6%; transform: rotate(-8deg); }
+  .mock.b { left: 46%; top: 16%; transform: rotate(6deg); }
+  .mock.b i { background: #e4e4e4; }
+  .back { align-self: flex-start; border: 0; background: transparent; padding: 6px 0; font-size: 15px; color: var(--mute); cursor: pointer; }
+  @media (max-width: 900px), (orientation: portrait) {
+    .home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .home-main { padding-right: 0; display: contents; }
+    .home-title { font-size: min(19vw, 15vh); }
+    .home-head { grid-row: 1; }
+    .home-art { grid-row: 2; margin: 24px 0; }
+    .home-foot { grid-row: 3; }
+    .band { display: none; }
+    .mock { width: auto; height: 88%; }
+    .mock.a { left: 20%; top: 2%; } .mock.b { left: 48%; top: 8%; }
+  }
+
   /* ---------- 설정 ---------- */
-  .gear { position: fixed; z-index: 6; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  .gear { position: fixed; z-index: 7; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(14px, env(safe-area-inset-bottom, 0px));
           background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
-  .corner { position: fixed; z-index: 6; top: 0; right: 0; width: 72px; height: 72px; background: transparent; border: 0; }
+  .corner { position: fixed; z-index: 7; top: 0; right: 0; width: 72px; height: 72px; background: transparent; border: 0; }
   dialog { border: 0; border-radius: 28px; background: var(--card); color: var(--ink); width: min(520px, calc(100% - 32px)); padding: 28px;
            box-shadow: 0 40px 80px rgba(0,0,0,.25); -webkit-user-select: text; user-select: text; }
   dialog::backdrop { background: rgba(0,0,0,.4); }
@@ -167,11 +206,29 @@
     .side .steps { max-width: 440px; }
   }
   @media (max-height: 640px) { .app { height: auto; } }
-  @media (prefers-reduced-motion: reduce) { .flash.on, .ring.tick circle, .spinner { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .flash.on, .ring.tick circle, .spinner, .home-cta .dot { animation: none; } }
 </style>
 </head>
 <body>
 
+
+<section class="home" id="home" aria-label="홈 화면">
+  <div class="home-main">
+    <div class="home-head">
+      <div class="topline" style="margin-bottom:22px"><span class="label">Photo Booth ✦ 01—04</span><span class="label" id="homeDate"></span></div>
+      <h1 class="home-title" id="homeTitle"></h1>
+    </div>
+    <div class="home-foot">
+      <p class="home-sub"><b id="homeSub">성도교제의 밤</b> · 은혜로 여기까지, 오늘을 네 컷으로</p>
+      <button class="home-cta" id="homeBtn" type="button"><span class="dot" aria-hidden="true"></span>터치해서 시작</button>
+    </div>
+  </div>
+  <div class="band" aria-hidden="true"><span>Shoot 4 cuts</span><span>Retake</span><span>Scan to save</span><span>Keep the grace</span></div>
+  <div class="home-art" aria-hidden="true">
+    <div class="mock a"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle">Here by Grace</b></div>
+    <div class="mock b"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle2">Here by Grace</b></div>
+  </div>
+</section>
 
 <div class="app" id="app">
   <section class="stage" aria-label="카메라 화면"><div class="cam">
@@ -205,6 +262,7 @@
 
     <!-- 처음 화면 -->
     <div class="view" id="idleView">
+      <button class="back" id="backBtn" type="button">← 처음 화면</button>
       <p class="lead">은혜로 여기까지,<br>오늘을 네 컷으로 남겨요<small><b id="secs">5</b>초 간격으로 네 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
       <div class="steps" id="thumbs"></div>
       <ol class="guide">
@@ -286,7 +344,11 @@
   $("subtitle").textContent = C.subtitle || "";
   const poseOf = (i) => C.poses[i] || "자유 포즈";
   const two = (n) => String(n).padStart(2, "0");
-  { const d = new Date(); $("dateLabel").textContent = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); }
+  { const d = new Date(), t = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); $("dateLabel").textContent = t; $("homeDate").textContent = t; }
+  // 홈 타이틀: 단어마다 한 줄
+  for (const w of String(C.title || "Here by Grace").split(/\s+/)) { const sp = document.createElement("span"); sp.textContent = w; $("homeTitle").appendChild(sp); }
+  $("homeSub").textContent = C.subtitle || "";
+  $("mockTitle").textContent = $("mockTitle2").textContent = C.title || "Here by Grace";
 
   // ---- 카메라 ----
   const video = $("video");
@@ -514,7 +576,7 @@
     stopIdle(); idleLeft = C.idleReset;
     const tick = () => {
       $("bye").textContent = idleLeft + "초 뒤 처음 화면으로 돌아가요";
-      if (idleLeft-- <= 0) { stopIdle(); reset(); }
+      if (idleLeft-- <= 0) { stopIdle(); goHome(); }
     };
     tick(); idleTimer = setInterval(tick, 1000);
   }
@@ -541,10 +603,14 @@
     if (view !== "done") stopIdle();
   }
   function reset() { shots.fill(null); uploaded = false; renderThumbs(); show("idle"); }
+  function showHome(on) { $("home").hidden = !on; if (on) { reset(); } }
+  function goHome() { if (!busy) showHome(true); }
 
   // ---- 이벤트 ----
   $("startBtn").onclick = () => { unlockAudio(); reset(); runSession([0, 1, 2, 3]); };
   $("nextBtn").onclick = reset;
+  $("home").onclick = () => { unlockAudio(); showHome(false); };
+  $("backBtn").onclick = goHome;
   $("sampleBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
   $("pickBtn").onclick = () => $("pickInput").click();
   $("pickInput").onchange = async (e) => {
@@ -566,6 +632,7 @@
     bumpIdle();
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
+      if (!$("home").hidden) { $("home").click(); return; }
       if (!$("idleView").hidden) $("startBtn").click(); else if (!$("doneView").hidden) $("nextBtn").click();
     }
   });
@@ -605,6 +672,10 @@
 
   $("secs").textContent = S.countdown;
   syncGear(); renderThumbs(); show("idle"); startCamera();
+  // 촬영 화면에서 아무것도 안 하면 홈으로 (2분)
+  let readyTimer = null;
+  const armReady = () => { clearTimeout(readyTimer); readyTimer = setTimeout(() => { if (!$("idleView").hidden && $("home").hidden && !$("settings").open) goHome(); }, 120000); };
+  document.addEventListener("pointerdown", armReady, { passive: true }); armReady();
 })();
 </script>
 </body>
