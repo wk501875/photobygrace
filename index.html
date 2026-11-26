@@ -232,27 +232,41 @@
           padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
   .pick-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
   .pick-head h2 { margin: 8px 0 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
-  .cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(210px, 1fr); gap: 16px; min-height: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding-bottom: 6px; }
-  .cards .card { scroll-snap-align: start; }
+  .pick-now { margin: 0; font-size: 16px; font-weight: 500; color: var(--mute); }
+  .pick-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 24px; min-height: 0; }
+  .pk-prev { position: relative; background: var(--card); border-radius: 26px; min-height: 0; }
+  .pk-prev img { position: absolute; inset: 22px; margin: auto; max-width: calc(100% - 44px); max-height: calc(100% - 44px); width: auto; height: auto;
+                 box-shadow: 0 22px 40px -24px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.06); }
+  .pk-side { display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); gap: 12px; min-height: 0; }
+  .pk-side .label + * { margin-bottom: 8px; }
+  .shapes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .shape { border: 0; background: var(--card); border-radius: 18px; padding: 14px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; text-align: left; font: inherit; color: var(--ink); min-width: 0; }
+  .shape svg { width: 34px; height: 34px; flex: none; }
+  .shape span { display: grid; min-width: 0; }
+  .shape strong { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .shape small { font-size: 12px; color: var(--mute); }
+  .shape[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .shape[aria-pressed="true"] small { color: rgba(255,255,255,.65); }
+  .shape:active { transform: scale(.98); }
+  .styles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
   .fbox:has(.fimg) { position: relative; }
-  .fimg { position: absolute; inset: 0; margin: auto; display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; box-shadow: 0 16px 30px -20px rgba(0,0,0,.4), 0 0 0 1px rgba(0,0,0,.06); }
-  .card { border: 0; background: var(--card); border-radius: 26px; padding: 18px 18px 16px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px;
-          cursor: pointer; min-height: 0; text-align: left; transition: transform .15s ease; }
+  .fimg { position: absolute; inset: 0; margin: auto; display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; box-shadow: 0 12px 24px -18px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.07); }
+  .card { border: 0; background: var(--card); border-radius: 20px; padding: 12px 12px 10px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px;
+          cursor: pointer; min-height: 0; text-align: left; transition: transform .15s ease; font: inherit; color: var(--ink); }
   .card[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--ink); }
   .card:active { transform: scale(.98); }
-  .fbox { container-type: size; min-height: 0; display: grid; place-items: center; }
-  .fprev { position: relative; width: min(100cqw, calc(var(--ar) * 100cqh)); aspect-ratio: var(--ar); background: var(--fbg); box-shadow: 0 18px 30px -20px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.06); }
-  .fprev i { position: absolute; background: var(--fslot); border-radius: 2px; }
-  .fprev b { position: absolute; height: 5%; background: var(--fink); border-radius: 1px; }
-  .fprev em { position: absolute; height: 2.4%; background: var(--fsub); border-radius: 1px; }
-  .card-meta { display: flex; justify-content: space-between; align-items: baseline; }
-  .card-meta { gap: 8px; }
-  .card-meta strong { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .card-meta .label { flex: none; }
+  .fbox { min-height: 0; }
+  .card-meta { display: flex; justify-content: center; min-width: 0; }
+  .card-meta strong { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .pick-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
   .pick-foot .cta { margin-top: 0; min-width: 320px; }
   @media (max-width: 900px), (orientation: portrait) {
-    .cards { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 340px; overflow-x: hidden; overflow-y: auto; }
+    .pick-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 16px; }
+    .pk-side { grid-template-rows: auto auto auto auto; }
+    .shapes { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .shape { flex-direction: column; text-align: center; gap: 6px; padding: 12px 6px; }
+    .shape span { justify-items: center; }
+    .styles { grid-template-rows: repeat(2, clamp(120px, 14dvh, 190px)); }
     .pick-foot .cta { min-width: 0; flex: 1; }
   }
 
@@ -320,9 +334,17 @@
 <section class="pick" id="pick" hidden aria-label="프레임 고르기">
   <div class="pick-head">
     <div><span class="label">Step 01 ✦ Frame</span><h2>프레임을 골라 주세요</h2></div>
-    <div class="chips" id="frameChips" role="group" aria-label="프레임 색"></div>
+    <p class="pick-now" id="pickNow"></p>
   </div>
-  <div class="cards" id="layoutCards" role="group" aria-label="레이아웃"></div>
+  <div class="pick-body">
+    <div class="pk-prev"><img id="pickPreview" alt=""></div>
+    <div class="pk-side">
+      <span class="label">1 · 사진 모양</span>
+      <div class="shapes" id="layoutCards" role="group" aria-label="사진 모양"></div>
+      <span class="label">2 · 디자인</span>
+      <div class="styles" id="styleGrid" role="group" aria-label="디자인"></div>
+    </div>
+  </div>
   <div class="pick-foot">
     <button class="back" id="pickBack" type="button">← 처음 화면</button>
     <button class="cta" id="pickNext" type="button">이 프레임으로 촬영</button>
@@ -452,23 +474,18 @@
   const C = Object.assign({ countdown: 5, mirror: true, jpegQuality: 0.9, poses: [], idleReset: 90 }, window.BOOTH_CONFIG || {});
   // ---- 레이아웃 (config.js의 layouts) ----
   const DEFAULT_LAYOUTS = {
-    strip4: { name: "세로 4컷", w: 1200, h: 3600, slots: [[80, 80, 1040, 694], [80, 814, 1040, 694], [80, 1548, 1040, 694], [80, 2282, 1040, 694]] },
+    strip4: { name: "세로 4컷", w: 1200, h: 3600, slots: [[66, 480, 1068, 648], [66, 1170, 1068, 648], [66, 1860, 1068, 648], [66, 2550, 1068, 648]] },
   };
   const LAYOUTS = {};
   for (const [k, v] of Object.entries(C.layouts && Object.keys(C.layouts).length ? C.layouts : DEFAULT_LAYOUTS)) {
     LAYOUTS[k] = { ...v, slots: v.slots.map(a => Array.isArray(a) ? { x: a[0], y: a[1], w: a[2], h: a[3] } : a) };
   }
-  // 디자인 프레임(frames.js)을 앞에: config.designs 순서대로
-  {
-    const DS = window.FRAME_DESIGNS || {}, order = Array.isArray(C.designs) ? C.designs : Object.keys(DS);
-    const merged = {};
-    for (const k of order) if (DS[k]) merged[k] = { name: DS[k].name, w: DS[k].w, h: DS[k].h, slots: DS[k].slots, design: k };
-    for (const [k, v] of Object.entries(LAYOUTS)) { delete LAYOUTS[k]; merged[k] = merged[k] || v; }
-    Object.assign(LAYOUTS, merged);
-  }
-  // 예전 config의 slots/frameImage 는 세로 4컷에 적용
-  if (Array.isArray(C.slots) && C.slots.length && LAYOUTS.strip4) LAYOUTS.strip4.slots = C.slots;
-  const FRAME_PNG = Object.assign({}, C.frameImage ? { strip4: C.frameImage } : {}, C.frameImages || {});
+  // 디자인 (frames.js): config.styles 순서대로. 어떤 사진 모양에도 다 입힐 수 있어요
+  const STYLES = {};
+  { const all = window.FRAME_STYLES || {};
+    for (const k of (Array.isArray(C.styles) ? C.styles : Object.keys(all))) if (all[k]) STYLES[k] = all[k];
+    if (!Object.keys(STYLES).length) Object.assign(STYLES, all); }
+  const defStyle = () => STYLES[C.frame] ? C.frame : Object.keys(STYLES)[0];
   const defLayout = () => LAYOUTS[C.layout] ? C.layout : Object.keys(LAYOUTS)[0];
   let layout = defLayout();
   const LAY = () => LAYOUTS[layout];
@@ -536,8 +553,20 @@
   let shots = [];
   let busy = false, liveIndex = -1;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  const slotRatio = (i = 0) => { const s = LAY().slots[i] || LAY().slots[0]; return s.w / s.h; };
-  const shotWidth = (i = 0) => Math.min(2400, Math.max(1560, (LAY().slots[i] || LAY().slots[0]).w));
+  // 사진마다 은혜 말씀 하나 (config.verses에서 랜덤)
+  let verseNow = null;
+  const pickVerse = () => { const v = Array.isArray(C.verses) ? C.verses : []; verseNow = C.verse === false || !v.length ? null : v[Math.floor(Math.random() * v.length)]; };
+  // 사진 자리 (디자인마다 칸 안쪽 여백·모서리·기울기가 달라요)
+  function geo(lk = layout, sk = frame, k = 1) {
+    const L = LAYOUTS[lk], St = STYLES[sk], top = Math.min(...L.slots.map(s => s.y)), bottom = Math.max(...L.slots.map(s => s.y + s.h));
+    const G = { W: L.w, H: L.h, u: top / 160, top, bottom, k, L: Math.min(...L.slots.map(s => s.x)), R: Math.max(...L.slots.map(s => s.x + s.w)),
+                slots: L.slots, title: C.title, subtitle: C.subtitle, footer: C.footer, verse: verseNow };
+    G.photos = L.slots.map((s, i) => St.photo(s, i, G));
+    return G;
+  }
+  const photoAt = (i = 0) => { const P = geo().photos; return P[i] || P[0]; };
+  const slotRatio = (i = 0) => { const p = photoAt(i); return p.w / p.h; };
+  const shotWidth = (i = 0) => Math.round(Math.min(2400, Math.max(1560, photoAt(i).w)));
 
   const SAMPLE_COLORS = ["#9a9a9a", "#7a7a7a", "#b0b0b0", "#6a6a6a"];
   function sampleShot(i) {
@@ -595,9 +624,7 @@
     film:  { name: "필름", css: "contrast(.94) saturate(.82) sepia(.2) brightness(1.03)", b: 1.03, c: .94, s: .82, warm: 14, fade: 22, grain: 12, vignette: .35 },
     grace: { name: "은혜의 빛", css: "brightness(1.07) contrast(.94) saturate(1.08) sepia(.16)", b: 1.07, c: .94, s: 1.08, warm: 16, bloom: .38, rays: true },
   };
-  const FRAMES = { white: { name: "화이트", bg: "#ffffff", ink: "#111111", sub: "#8a8a8a", side: "#b5b5b5", empty: "#e8e9ee" },
-                   black: { name: "블랙",  bg: "#111111", ink: "#ffffff", sub: "#9a9a9a", side: "#555555", empty: "#2a2a2a" } };
-  let look = LOOKS[C.look] ? C.look : "none", frame = FRAMES[C.frame] ? C.frame : "white";
+  let look = LOOKS[C.look] ? C.look : "none", frame = defStyle();
 
   function applyLook(c, key) {
     const L = LOOKS[key]; if (!L || key === "none") return;
@@ -664,43 +691,42 @@
       }
     };
     mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
-    mk($("frameChips"), FRAMES, frame, (k) => { frame = k; renderChips(); renderCards(); }, true);
-    $("frameChips").hidden = !!LAY().design;   // 디자인 프레임은 색이 정해져 있음
-    $("frameNow").textContent = "프레임: " + LAY().name + (LAY().design ? "" : " · " + (FRAMES[frame] || FRAMES.white).name) + " (" + N() + "컷)";
+    $("frameNow").textContent = "프레임: " + LAY().name + " · " + STYLES[frame].name + " (" + N() + "컷)";
   }
-  // 프레임 고르기 카드: 칸 배치를 그대로 축소해서 보여 줌
-  const cardCache = {};
-  let fontsReady = false;
-  Promise.all(designFonts().map(f => document.fonts.load(f).catch(() => {}))).then(() => { fontsReady = true; for (const k in cardCache) delete cardCache[k]; if (!$("pick").hidden) renderCards(); });
-  function designCard(k) {   // 디자인 프레임 카드: 실제 결과와 똑같이 작게 그림
-    if (!cardCache[k]) {
-      const full = composeDesign(LAYOUTS[k], true), sm = document.createElement("canvas"), sc = 640 / full.height;
-      sm.width = Math.round(full.width * sc); sm.height = 640; sm.getContext("2d").drawImage(full, 0, 0, sm.width, sm.height);
-      cardCache[k] = sm.toDataURL("image/png");
-    }
-    return cardCache[k];
+  // 프레임 고르기: 사진 모양 → 디자인. 썸네일·미리보기는 실제 결과를 작게 그린 것
+  const thumbCache = {};
+  Promise.all(designFonts().map(f => document.fonts.load(f).catch(() => {}))).then(() => { for (const k in thumbCache) delete thumbCache[k]; if (!$("pick").hidden) renderPick(); });
+  function frameImage(lk, sk, size) {   // size: 긴 변 픽셀
+    const key = lk + "/" + sk + "/" + size;
+    if (!thumbCache[key]) { const L = LAYOUTS[lk]; thumbCache[key] = compose(lk, sk, size / Math.max(L.w, L.h), true).toDataURL("image/png"); }
+    return thumbCache[key];
   }
-  function renderCards() {
-    const box = $("layoutCards"), F = FRAMES[frame] || FRAMES.white;
-    box.innerHTML = ""; box.style.setProperty("--cards", Object.keys(LAYOUTS).length);
+  function renderPick() {
+    const shapes = $("layoutCards"), grid = $("styleGrid");
+    shapes.innerHTML = "";
     for (const [k, L] of Object.entries(LAYOUTS)) {
-      const bt = document.createElement("button"); bt.type = "button"; bt.className = "card"; bt.setAttribute("aria-pressed", String(k === layout));
-      const pc = (v, t) => (v / t * 100).toFixed(2) + "%";
-      const left = Math.min(...L.slots.map(s => s.x)), right = Math.max(...L.slots.map(s => s.x + s.w)), top = Math.max(...L.slots.map(s => s.y + s.h)), A = L.h - top;
-      let inner = L.slots.map(s => `<i style="left:${pc(s.x, L.w)};top:${pc(s.y, L.h)};width:${pc(s.w, L.w)};height:${pc(s.h, L.h)}"></i>`).join("");
-      inner += `<b style="left:${pc(left, L.w)};top:${pc(L.h - A * .62, L.h)};width:${pc((right - left) * .55, L.w)};height:${pc(A * .2, L.h)}"></b>`;
-      inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .36, L.h)};width:${pc((right - left) * .3, L.w)};height:${pc(A * .06, L.h)}"></em>`;
-      inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .22, L.h)};width:${pc((right - left) * .7, L.w)};height:${pc(A * .05, L.h)}"></em>`;
-      bt.innerHTML = (L.design ? `<div class="fbox"><img class="fimg" alt="" src="${designCard(k)}"></div>` : `<div class="fbox"><div class="fprev" style="--ar:${(L.w / L.h).toFixed(4)};--fbg:${F.bg};--fslot:${F.empty};--fink:${F.ink};--fsub:${F.sub}">${inner}</div></div>`)
-        + `<div class="card-meta"><strong></strong><span class="label"></span></div>`;
+      const bt = document.createElement("button"); bt.type = "button"; bt.className = "shape"; bt.setAttribute("aria-pressed", String(k === layout));
+      bt.innerHTML = layoutIcon(L) + "<span><strong></strong><small></small></span>";
       bt.querySelector("strong").textContent = L.name;
-      bt.querySelector(".label").textContent = L.slots.length + (L.slots.length > 1 ? " cuts" : " cut");
-      bt.setAttribute("aria-label", L.name + ", " + L.slots.length + "컷");
-      bt.onclick = () => { layout = k; applyLayout(); renderCards(); renderChips(); };
-      box.appendChild(bt);
+      bt.querySelector("small").textContent = L.slots.length + "컷";
+      bt.onclick = () => { layout = k; applyLayout(); renderPick(); renderChips(); };
+      shapes.appendChild(bt);
     }
+    grid.innerHTML = "";
+    grid.style.setProperty("--ar", (LAY().w / LAY().h).toFixed(4));
+    for (const [k, St] of Object.entries(STYLES)) {
+      const bt = document.createElement("button"); bt.type = "button"; bt.className = "card sty"; bt.setAttribute("aria-pressed", String(k === frame));
+      bt.innerHTML = `<div class="fbox"><img class="fimg" alt="" src="${frameImage(layout, k, 420)}"></div><div class="card-meta"><strong></strong></div>`;
+      bt.querySelector("strong").textContent = St.name;
+      bt.setAttribute("aria-label", St.name + " 디자인");
+      bt.onclick = () => { frame = k; applyLayout(); renderPick(); renderChips(); };
+      grid.appendChild(bt);
+    }
+    $("pickPreview").src = frameImage(layout, frame, 1100);
+    $("pickPreview").alt = LAY().name + " · " + STYLES[frame].name + " 미리보기";
+    $("pickNow").textContent = LAY().name + " · " + STYLES[frame].name;
   }
-  function showPick(on) { $("pick").hidden = !on; if (on) { renderCards(); renderChips(); } }
+  function showPick(on) { $("pick").hidden = !on; if (on) { renderPick(); renderChips(); } }
 
   // 레이아웃 아이콘: 칸 배치를 그대로 축소
   function layoutIcon(L) {
@@ -829,13 +855,13 @@
     if (busy) return;
     const total = totalTakes();
     takes = new Array(total).fill(null);
+    pickVerse();   // 촬영할 때마다 은혜 말씀을 새로 뽑음
     busy = true; liveSrc = "takes"; show("shoot");
     try { for (let i = 0; i < total; i++) await takeOne(i, takes, total); }
     finally { $("chip").hidden = true; $("count").hidden = true; busy = false; liveIndex = -1; }
     if (!takes.every(Boolean)) { liveSrc = "shots"; show("idle"); return; }
     if (total === N()) { shots = takes.slice(); liveSrc = "shots"; finish(); return; }
     picks = takes.slice(0, N()).map((_, i) => i);   // 처음 N장을 미리 골라 둠
-    pickVerse();
     showSelect();
   }
   // 결과·고르기 화면: 사진 미리보기 칸 너비를 레이아웃 비율에 맞춰 계산
@@ -928,83 +954,27 @@
   }
 
   // ---- 프레임 합성 ----
-  // 레이아웃별 디자인 프레임 PNG (config.frameImages)
-  const frameImgs = {};
-  for (const [k, src] of Object.entries(FRAME_PNG)) {
-    if (!src) continue;
-    const im = new Image();
-    im.onload = () => { frameImgs[k] = im; };
-    im.onerror = () => console.warn("프레임 이미지를 불러오지 못했어요:", src);
-    im.src = src;
-  }
   function roundRect(ctx, x, y, w, h, r) {
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
-  // 사진마다 은혜 말씀 하나 (config.verses에서 랜덤)
-  let verseNow = null;
-  const pickVerse = () => { const v = Array.isArray(C.verses) ? C.verses : []; verseNow = C.verse === false || !v.length ? null : v[Math.floor(Math.random() * v.length)]; };
-  function composeDesign(L, preview) {
-    const D = window.FRAME_DESIGNS[L.design], c = document.createElement("canvas"); c.width = L.w; c.height = L.h;
-    const ctx = c.getContext("2d");
-    D.draw(ctx, "bg");
-    L.slots.forEach((s, i) => {
+  function designFonts() { return Object.values(STYLES).flatMap(d => d.fonts); }
+  // 사진 모양(lk) × 디자인(sk)을 배율 k로 그림. empty면 사진 없이 빈 칸만
+  function compose(lk = layout, sk = frame, k = 1, empty = false) {
+    const G = geo(lk, sk, k), St = STYLES[sk], c = document.createElement("canvas");
+    c.width = Math.round(G.W * k); c.height = Math.round(G.H * k);
+    const ctx = c.getContext("2d"); ctx.scale(k, k);
+    St.draw(ctx, "bg", G);
+    G.photos.forEach((p, i) => {
       ctx.save();
-      if (s.rot) { ctx.translate(s.x + s.w / 2, s.y + s.h / 2); ctx.rotate(s.rot * Math.PI / 180); ctx.translate(-(s.x + s.w / 2), -(s.y + s.h / 2)); }
-      roundRect(ctx, s.x, s.y, s.w, s.h, s.r || 0); ctx.clip();
-      if (!preview && shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h);
-      else { ctx.fillStyle = D.empty; ctx.fillRect(s.x, s.y, s.w, s.h); }
+      if (p.rot) { ctx.translate(p.x + p.w / 2, p.y + p.h / 2); ctx.rotate(p.rot * Math.PI / 180); ctx.translate(-(p.x + p.w / 2), -(p.y + p.h / 2)); }
+      roundRect(ctx, p.x, p.y, p.w, p.h, p.r || 0); ctx.clip();
+      if (!empty && shots[i]) ctx.drawImage(shots[i], p.x, p.y, p.w, p.h);
+      else { ctx.fillStyle = St.empty; ctx.fillRect(p.x, p.y, p.w, p.h); }
       ctx.restore();
     });
-    D.draw(ctx, "fg");
-    return c;
-  }
-  function designFonts() { return Object.values(window.FRAME_DESIGNS || {}).flatMap(d => d.fonts); }
-  function compose() {
-    const L = LAY(), W = L.w, H = L.h, frameImg = frameImgs[layout];
-    if (L.design && !frameImg) return composeDesign(L);
-    const c = document.createElement("canvas"); c.width = W; c.height = H;
-    const ctx = c.getContext("2d");
-    const F = FRAMES[frame] || FRAMES.white;
-    ctx.fillStyle = frameImg ? "#ffffff" : F.bg; ctx.fillRect(0, 0, W, H);
-    L.slots.forEach((s, i) => {
-      ctx.save(); roundRect(ctx, s.x, s.y, s.w, s.h, frameImg ? 0 : Math.round(W / 200)); ctx.clip();
-      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h); else { ctx.fillStyle = F.empty; ctx.fillRect(s.x, s.y, s.w, s.h); }
-      ctx.restore();
-    });
-    if (frameImg) {
-      ctx.drawImage(frameImg, 0, 0, W, H);
-      return c;
-    }
-    // 기본 프레임: 사진 아래 남는 공간(A)에 비례해 글자 배치 (디자인 PNG는 frameImages로 교체)
-    const left = Math.min(...L.slots.map(s => s.x)), right = Math.max(...L.slots.map(s => s.x + s.w));
-    const top = Math.max(...L.slots.map(s => s.y + s.h)), A = H - top;
-    const px = (r) => Math.round(A * r);
-    ctx.fillStyle = F.ink; ctx.textBaseline = "alphabetic";
-    // 제목: 폭을 넘지 않게
-    let ts = px(.24); ctx.textAlign = "left"; ctx.font = `${ts}px Anton, 'Arial Narrow', sans-serif`;
-    const title = String(C.title || "").toUpperCase();
-    while (ctx.measureText(title).width > (right - left) * .8 && ts > 20) { ts -= 2; ctx.font = `${ts}px Anton, 'Arial Narrow', sans-serif`; }
-    ctx.fillText(title, left, H - px(.42));
-    ctx.fillStyle = F.sub; ctx.font = `500 ${px(.064)}px 'Noto Sans KR', sans-serif`;
-    ctx.fillText(C.subtitle || "", left, H - px(.3));
-    ctx.textAlign = "right"; ctx.font = `600 ${px(.048)}px Inter, sans-serif`;
-    ctx.fillText(String(C.footer || "").toUpperCase() + "  ✦", right, H - px(.3));
-    if (verseNow) {   // 은혜 말씀 한 줄 (길면 글자를 줄임)
-      ctx.fillStyle = F.ink; ctx.globalAlpha = .75;
-      ctx.textAlign = "right"; ctx.font = `600 ${px(.042)}px Inter, 'Noto Sans KR', sans-serif`;
-      const refW = ctx.measureText(verseNow.ref).width;
-      ctx.fillText(verseNow.ref, right, H - px(.16));
-      const line = "“" + verseNow.text + "”", room = right - left - refW - px(.05);
-      let size = px(.052); ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`;
-      while (ctx.measureText(line).width > room && size > 14) { size--; ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`; }
-      ctx.textAlign = "left"; ctx.fillText(line, left, H - px(.16)); ctx.globalAlpha = 1;
-    }
-    // 오른쪽 여백 세로 글씨
-    const sideFont = Math.max(14, Math.round(Math.min((W - right) * .28, H * .007)));
-    ctx.save(); ctx.translate(right + (W - right) / 2 + sideFont * .35, L.slots[0].y); ctx.rotate(Math.PI / 2);
-    ctx.textAlign = "left"; ctx.fillStyle = F.side; ctx.font = `600 ${sideFont}px Inter, sans-serif`;
-    ctx.fillText("KEEP THE GRACE ALIVE", 0, 0); ctx.restore();
+    St.draw(ctx, "fg", G);
     return c;
   }
 
@@ -1116,7 +1086,7 @@
   function reset() { shots = new Array(N()).fill(null); takes = []; picks = []; verseNow = null; liveSrc = "shots"; uploaded = false; renderThumbs(); show("idle"); }
   function showHome(on) {
     $("home").hidden = !on;
-    if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
+    if (on) { $("pick").hidden = true; layout = defLayout(); frame = defStyle(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
   }
   function goHome() { if (!busy) showHome(true); }
 
