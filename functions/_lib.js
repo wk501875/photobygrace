@@ -32,7 +32,7 @@ export function safeEqual(a, b) {
 }
 
 // 휴대폰용 페이지 틀 — 촬영 화면과 같은 흑백 에디토리얼
-export const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&family=Montserrat:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">`;
+export const FONTS = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&display=swap">`;
 
 export function page(title, inner) {
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
@@ -44,21 +44,20 @@ ${FONTS}
   :root { color-scheme: dark; --bg:#26398b; --line:rgba(255,255,255,.24); --ink:#fff; --mute:rgba(233,236,250,.72); --on-ink:#26398b; }
   * { box-sizing:border-box; }
   body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink);
-         font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+         font-family:"Pretendard Variable",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
   main { max-width:480px; margin:0 auto; text-align:center;
          padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-  .kicker { font-family:"Montserrat",sans-serif; font-weight:500; letter-spacing:.32em; text-transform:uppercase; font-size:15px; margin:0; }
+  .kicker { font-family:"Pretendard Variable",system-ui,sans-serif; font-weight:500; letter-spacing:.5em; padding-left:.5em; text-transform:uppercase; font-size:15px; margin:0; }
   h1 { font-family:"Oranienbaum","Bodoni 72",Didot,serif; font-weight:400; font-size:88px; line-height:.85; margin:6px 0 0; text-transform:uppercase; }
   .sub { color:var(--mute); margin:12px 0 0; font-size:14px; }
   .photo { display:block; max-height:52dvh; max-width:100%; width:auto; height:auto; margin:24px auto; box-shadow:0 24px 40px -20px rgba(8,14,48,.6); -webkit-touch-callout: default; }
-  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:18px; border-radius:999px;
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:18px; border-radius:4px;
          text-decoration:none; color:var(--on-ink); background:#fff; }
-  .btn::after { content:"↓"; font-family:"Montserrat",sans-serif; font-weight:500; }
   .btn:active { transform:scale(.98); }
   .btn:focus-visible { outline:3px solid #fff; outline-offset:3px; }
   .tip { color:var(--mute); font-size:13px; line-height:1.7; margin:14px 0 0; }
-  .verse { margin:28px 0 0; padding-top:18px; border-top:1px solid var(--line); font-family:"Noto Serif KR",serif; font-size:16px; }
-  .verse span { display:block; margin-top:6px; font-family:"Montserrat",sans-serif; font-size:11px; letter-spacing:.24em; color:var(--mute); }
+  .verse { margin:28px 0 0; padding-top:18px; border-top:1px solid var(--line);  font-size:16px; }
+  .verse span { display:block; margin-top:6px; font-family:"Pretendard Variable",system-ui,sans-serif; font-size:11px; letter-spacing:.24em; color:var(--mute); }
   .empty { margin:40px 0 10px; color:var(--mute); line-height:1.7; }
 </style></head><body><main>
 ${inner}
