@@ -9,157 +9,327 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="네컷">
+<meta name="theme-color" content="#ececec">
 <link rel="apple-touch-icon" href="icon-512.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
-  /* 키오스크 한 화면: 왼쪽 카메라, 오른쪽 안내/결과 패널 (좁으면 세로로) */
+  /* 포토부스 키오스크 — 흑백 에디토리얼. 밝은 회색 바탕, 흰 카드, 검은 알약 버튼, 좁고 굵은 영문 제목.
+     카메라(왼쪽/위) + 안내 패널(오른쪽/아래). 조명 아래 밝은 공간에 두는 기기라 밝은 화면 한 가지로 디자인. */
   :root {
-    --bg: #f4f5f8; --panel: #ffffff; --fg: #1d2030; --muted: #6b7083;
-    --line: #e1e3ea; --accent: #3949ab; --accent-fg: #ffffff; --ok: #2e7d32; --warn: #c62828;
-    --body: "Gowun Dodum", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    --display: "Caveat", "Gowun Dodum", cursive;
+    color-scheme: light;
+    --bg: #ececec;        /* 바탕 */
+    --card: #ffffff;      /* 패널 */
+    --soft: #f3f3f3;      /* 빈 칸, QR 카드 */
+    --line: #e1e1e1;
+    --ink: #111111;       /* 글자, 버튼 */
+    --mute: #8a8a8a;      /* 보조 글자 */
+    --ok: #1f7a3a; --warn: #c62828;
+    --display: "Anton", "Arial Narrow", "Noto Sans KR", sans-serif;
+    --latin: "Inter", system-ui, sans-serif;
+    --body: "Noto Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-    --bg: #12141c; --panel: #1c1f2b; --fg: #eceef5; --muted: #9a9fb3; --line: #2c3040; --accent: #7986cb; --accent-fg: #0f1120; color-scheme: dark } }
-  :root[data-theme="dark"] {
-    --bg: #12141c; --panel: #1c1f2b; --fg: #eceef5; --muted: #9a9fb3; --line: #2c3040; --accent: #7986cb; --accent-fg: #0f1120; color-scheme: dark }
-
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
-  html, body { height: 100%; margin: 0; }
-  body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; }
-  .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px;
-         padding-block: 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-  /* 세로 화면(세로로 세운 태블릿): 카메라 위, 패널 아래 */
-  @media (max-width: 860px), (orientation: portrait) {
-    .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
-    .stage { min-height: 0; }
-    /* 결과 화면에서는 카메라를 접고 사진과 QR을 크게 */
-    .app.done { grid-template-rows: minmax(0, 1fr); }
-    .app.done .stage { display: none; }
-    .app.done .result { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 24px; }
-    .app.done .qrbox canvas { max-width: 320px; }
-    .app.done .status { font-size: 18px; }
-    .app.done .thumbs { max-width: 560px; }
-  }
-  /* 휴대폰 가로처럼 낮은 화면은 그냥 스크롤 */
-  @media (max-height: 640px) { .app { height: auto; } }
-  html, body { overscroll-behavior: none; }
-  .btn, .thumbs button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+  html, body { height: 100%; margin: 0; overscroll-behavior: none; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; letter-spacing: -0.01em;
+         -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; touch-action: manipulation; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+  .label { font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 
-  .stage { position: relative; background: #000; border-radius: 16px; overflow: hidden; min-height: 300px;
-           display: grid; place-items: center; }
-  /* 미리보기를 결과 사진과 같은 3:2로 잘라 보여 줌 */
-  .stage video { width: 100%; max-height: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
-  .stage video.mirror { transform: scaleX(-1); }
-  .count { position: absolute; inset: 0; display: grid; place-items: center; font-size: min(36vw, 320px);
-           color: #fff; font-family: var(--display); text-shadow: 0 6px 30px rgba(0,0,0,.5); pointer-events: none; }
-  .shotno { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,.55); color: #fff;
-            padding: 8px 14px; border-radius: 999px; font-size: 18px; }
-  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
-  .flash.on { animation: flash .45s ease-out; }
+  .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px;
+         padding-block: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
+         padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+  /* ---------- 카메라: 결과 사진과 같은 3:2, 남는 공간 안에서 최대 ---------- */
+  .stage { container-type: size; min-height: 0; display: grid; place-items: center; }
+  .cam { position: relative; width: min(100cqw, 150cqh); aspect-ratio: 3 / 2; border-radius: 32px; overflow: hidden; background: #000; }
+  .cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cam video.mirror { transform: scaleX(-1); }
+  /* 네 모서리 브래킷 */
+  .brackets { position: absolute; inset: 22px; z-index: 2; pointer-events: none; --b: rgba(255,255,255,.9); --l: 44px; --t: 3px;
+    background:
+      linear-gradient(var(--b), var(--b)) top left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top left / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) top right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top right / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) bottom left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom left / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) bottom right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom right / var(--t) var(--l) no-repeat; }
+  .chip { position: absolute; z-index: 3; top: 34px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+          background: #fff; color: var(--ink); padding: 10px 20px 10px 10px; border-radius: 999px; font-size: 18px; font-weight: 500; white-space: nowrap; }
+  .chip b { font-family: var(--latin); font-weight: 600; font-size: 13px; letter-spacing: .08em; background: var(--ink); color: #fff; border-radius: 999px; padding: 6px 10px; }
+  .count { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; }
+  .ring { width: min(40%, 280px); aspect-ratio: 1; position: relative; display: grid; place-items: center; }
+  .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .ring circle { fill: rgba(0,0,0,.28); stroke: #fff; stroke-width: 2.5; stroke-dasharray: 289; stroke-dashoffset: 0; }
+  .ring.tick circle { animation: drain 1s linear forwards; }
+  @keyframes drain { to { stroke-dashoffset: 289; } }
+  .ring span { position: relative; font-family: var(--display); color: #fff; font-size: clamp(100px, 15vw, 210px); line-height: 1; }
+  .ring.ready span { font-family: var(--body); font-weight: 700; font-size: clamp(30px, 4vw, 46px); }
+  .flash { position: absolute; inset: 0; z-index: 4; background: #fff; opacity: 0; pointer-events: none; }
+  .flash.on { animation: flash .5s ease-out; }
   @keyframes flash { from { opacity: .95 } to { opacity: 0 } }
-  .nocam { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-           color: #ddd; text-align: center; padding: 24px; line-height: 1.6; }
-  .nocam p { margin: 0; max-width: 36em; }
-  .nocam .row { flex: 0 0 auto; width: min(100%, 420px); }
+  .nocam { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center;
+           gap: 16px; padding: 28px; text-align: center; line-height: 1.6; color: #bbb; background: #161616; }
+  .nocam p { margin: 0; max-width: 34em; }
+  .nocam .row { width: min(100%, 440px); }
+  .nocam .ghost { color: #fff; border-color: #444; }
 
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
-           display: flex; flex-direction: column; gap: 16px; min-height: 0; overflow: auto; }
-  h1 { font-family: var(--display); font-size: 52px; line-height: 1; margin: 0; text-wrap: balance; }
-  .sub { color: var(--muted); margin: 4px 0 0; }
-  .thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .thumbs button { aspect-ratio: 3 / 2; border: 2px dashed var(--line); border-radius: 8px; background: var(--bg) center / cover no-repeat;
-                   color: var(--muted); font: inherit; cursor: pointer; padding: 0; }
-  .thumbs button.filled { border-style: solid; border-color: var(--accent); color: transparent; }
-  .btn { font: inherit; font-size: 20px; border: 0; border-radius: 12px; padding: 16px; cursor: pointer;
-         background: var(--accent); color: var(--accent-fg); }
-  .btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); font-size: 16px; padding: 12px; }
-  .btn:disabled { opacity: .45; cursor: default; }
-  .btn:focus-visible, .thumbs button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* 촬영 중(가로): 패널을 숨기고 카메라를 화면 가득 */
+  .app.shooting { grid-template-columns: 1fr; }
+  .app.shooting .panel { display: none; }
+  .app.shooting .chip { font-size: 24px; top: 40px; padding: 12px 26px 12px 12px; }
+  .app.shooting .chip b { font-size: 15px; }
+
+  /* ---------- 패널 ---------- */
+  .panel { background: var(--card); border-radius: 32px; padding: 28px; display: flex; flex-direction: column; gap: 24px; min-height: 0; overflow: auto; }
+  .topline { display: flex; justify-content: space-between; align-items: center; }
+  .brand h1 { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: .9; margin: 0; text-transform: uppercase; letter-spacing: .005em; }
+  .brand p { margin: 10px 0 0; color: var(--mute); font-size: 15px; }
+  .view { display: flex; flex-direction: column; gap: 22px; flex: 1; min-height: 0; }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .slot { position: relative; aspect-ratio: 3 / 2; border-radius: 10px; background: var(--soft) center / cover no-repeat; border: 0; padding: 0;
+          display: grid; place-items: center; cursor: default; overflow: hidden;
+          font-family: var(--latin); font-weight: 600; font-size: 13px; letter-spacing: .1em; color: var(--mute); }
+  .slot.now { box-shadow: inset 0 0 0 2px var(--ink); color: var(--ink); }
+  .slot.filled { color: transparent; }
+  .slot.retake { cursor: pointer; }
+  .slot.retake::after { content: "다시"; position: absolute; right: 6px; bottom: 6px; font-family: var(--body); font-size: 12px; font-weight: 500; letter-spacing: 0;
+                        padding: 3px 9px; border-radius: 999px; background: #fff; color: var(--ink); }
+
+  .lead { font-size: 25px; font-weight: 700; line-height: 1.3; margin: 0; letter-spacing: -0.03em; text-wrap: balance; }
+  .lead small { display: block; font-size: 15px; font-weight: 400; color: var(--mute); margin-top: 10px; letter-spacing: -0.01em; line-height: 1.5; }
+  .guide { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  #idleView .guide { display: none; }
+  .guide li { display: flex; align-items: baseline; gap: 14px; padding: 13px 0; border-bottom: 1px solid var(--line); font-size: 16px; }
+  .guide li i { font-style: normal; font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .1em; color: var(--mute); }
+
+  .cta { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 12px; border: 0; border-radius: 999px; padding: 24px 28px;
+         font-size: 22px; font-weight: 700; cursor: pointer; background: var(--ink); color: #fff; }
+  .cta::after { content: "→"; font-family: var(--latin); font-weight: 500; }
+  .cta:active { transform: scale(.98); }
+  .cta:disabled { opacity: .4; }
+  .ghost { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 500; cursor: pointer; color: var(--ink); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .row > * { flex: 1 1 0; }
-  .hint { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0; }
 
-  .result { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: start; }
-  .result img { width: 100%; border-radius: 6px; border: 1px solid var(--line); }
-  .qrbox { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
-  .qrbox canvas { width: 100%; max-width: 220px; height: auto; background: #fff; padding: 10px; border-radius: 10px; }
-  .status { font-size: 15px; }
+  .pose { padding: 12px 0 4px; }
+  .pose .t { font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
+
+  /* ---------- 결과: 카메라를 접고 전체 폭 — 사진 | QR | 다시 찍기·다음 ---------- */
+  .app.done { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
+  .app.done .stage { display: none; }
+  #doneView { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 380px); gap: 24px; align-items: stretch; }
+  .strip { height: 100%; max-height: calc(100dvh - 230px); width: auto; max-width: 100%; justify-self: center;
+           box-shadow: 0 1px 0 var(--line), 0 24px 40px -24px rgba(0,0,0,.35); }
+  .qrcard { background: var(--soft); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; min-width: 0; }
+  .qrcard h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .qrframe { position: relative; width: 100%; max-width: 340px; aspect-ratio: 1; padding: 22px; --b: var(--ink); --l: 34px; --t: 3px;
+    background:
+      linear-gradient(var(--b), var(--b)) top left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top left / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) top right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top right / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) bottom left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom left / var(--t) var(--l) no-repeat,
+      linear-gradient(var(--b), var(--b)) bottom right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom right / var(--t) var(--l) no-repeat; }
+  .qrcard #qr { width: 100%; height: 100%; display: grid; place-items: center; background: #fff; border-radius: 6px; }
+  .qrcard canvas { width: 100%; height: auto; image-rendering: pixelated; }
+  .qrcard ol { margin: 0; padding: 0; list-style: none; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; font-size: 14px; color: var(--mute); }
+  .qrcard ol li { background: #fff; border-radius: 999px; padding: 6px 12px; }
+  .qrcard ol b { font-family: var(--latin); color: var(--ink); margin-right: 4px; }
+  .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .status { font-size: 15px; line-height: 1.5; }
   .status.ok { color: var(--ok); } .status.err { color: var(--warn); }
+  .spinner { width: 42px; height: 42px; border-radius: 999px; border: 3px solid var(--line); border-top-color: var(--ink); animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hint { color: var(--mute); font-size: 14px; margin: 0; line-height: 1.5; }
+  .bye { color: var(--mute); font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
 
-  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--panel); color: var(--fg); width: min(520px, calc(100% - 32px)); }
-  dialog label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); }
-  dialog input, dialog select { font: inherit; font-size: 15px; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  /* ---------- 홈 화면: 타이틀을 화면 가득 ---------- */
+  .home { position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer; display: grid;
+          grid-template-columns: minmax(0, 1fr) auto minmax(0, .8fr); gap: 0;
+          padding-block: max(28px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-bottom, 0px));
+          padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
+  .home-main { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding-right: 32px; }
+  .home-title { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: 0;
+                font-size: min(22vh, 15vw); line-height: .9; letter-spacing: .005em; }
+  .home-title span { display: block; }
+  .home-sub { margin: 22px 0 0; font-size: 22px; color: var(--mute); }
+  .home-sub b { color: var(--ink); font-weight: 700; }
+  .home-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 14px; margin-top: 28px; border: 0; border-radius: 999px;
+              padding: 22px 34px; background: var(--ink); color: #fff; font-size: 22px; font-weight: 700; cursor: pointer; }
+  .home-cta::after { content: "→"; font-family: var(--latin); font-weight: 500; }
+  .home-cta .dot { width: 10px; height: 10px; border-radius: 999px; background: #fff; animation: blink 1.6s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .band { background: var(--ink); color: #fff; border-radius: 4px; width: 64px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 22px 0; }
+  .band span { writing-mode: vertical-rl; font-family: var(--display); font-size: 22px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+  .home-art { position: relative; min-width: 0; overflow: hidden; }
+  .mock { position: absolute; width: 44%; aspect-ratio: 1 / 3; background: #fff; padding: 5% 5% 0; display: grid; grid-template-rows: repeat(4, 1fr) .9fr; gap: 3.5%;
+          box-shadow: 0 30px 50px -25px rgba(0,0,0,.35); }
+  .mock i { background: var(--soft); display: grid; place-items: center; font-style: normal; font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .1em; color: #b8b8b8; }
+  .mock b { font-family: var(--display); font-weight: 400; font-size: clamp(14px, 1.6vw, 22px); line-height: 1; align-self: center; text-transform: uppercase; }
+  .mock.a { left: 12%; top: 6%; transform: rotate(-8deg); }
+  .mock.b { left: 46%; top: 16%; transform: rotate(6deg); }
+  .mock.b i { background: #e4e4e4; }
+  .back { align-self: flex-start; border: 0; background: transparent; padding: 6px 0; font-size: 15px; color: var(--mute); cursor: pointer; }
+  @media (max-width: 900px), (orientation: portrait) {
+    .home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
+    .home-main { padding-right: 0; display: contents; }
+    .home-title { font-size: min(19vw, 15vh); }
+    .home-head { grid-row: 1; }
+    .home-art { grid-row: 2; margin: 24px 0; }
+    .home-foot { grid-row: 3; }
+    .band { display: none; }
+    .mock { width: auto; height: 88%; }
+    .mock.a { left: 20%; top: 2%; } .mock.b { left: 48%; top: 8%; }
+  }
+
+  /* ---------- 설정 ---------- */
+  .gear { position: fixed; z-index: 7; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(14px, env(safe-area-inset-bottom, 0px));
+          background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
+  .corner { position: fixed; z-index: 7; top: 0; right: 0; width: 72px; height: 72px; background: transparent; border: 0; }
+  dialog { border: 0; border-radius: 28px; background: var(--card); color: var(--ink); width: min(520px, calc(100% - 32px)); padding: 28px;
+           box-shadow: 0 40px 80px rgba(0,0,0,.25); -webkit-user-select: text; user-select: text; }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
   dialog form { display: grid; gap: 14px; }
-  .gear { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-          font: inherit; font-size: 13px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; opacity: .6; }
-  @media (prefers-reduced-motion: reduce) { .flash.on { animation: none; } }
+  dialog h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 32px; text-transform: uppercase; }
+  dialog label { display: grid; gap: 6px; font-size: 14px; color: var(--mute); }
+  dialog label.check { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 15px; }
+  dialog input[type=text], dialog input[type=password], dialog input[type=number], dialog select {
+    font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); }
+  dialog input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--ink); }
+  dialog .save { background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; }
+
+  /* 세로 화면(세로로 세운 태블릿): 카메라 위, 패널 아래 */
+  @media (max-width: 900px), (orientation: portrait) {
+    .app, .app.shooting { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+    .app.shooting .panel { display: flex; }
+    .stage { aspect-ratio: 3 / 2; }
+    .app.done { grid-template-rows: minmax(0, 1fr); }
+    .brand h1 { font-size: 52px; }
+    .panel { gap: 20px; }
+    #idleView .guide { display: none; }
+    #idleView .steps, #shootView .steps { max-width: 400px; }
+    .lead { font-size: 28px; }
+    #doneView { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 20px; }
+    .strip { height: auto; width: 100%; max-height: none; }
+    .side { grid-column: 1 / -1; }
+    .side .steps { max-width: 440px; }
+  }
+  @media (max-height: 640px) { .app { height: auto; } }
+  @media (prefers-reduced-motion: reduce) { .flash.on, .ring.tick circle, .spinner, .home-cta .dot { animation: none; } }
 </style>
 </head>
 <body>
-<div class="app">
-  <section class="stage" id="stage">
+
+
+<section class="home" id="home" aria-label="홈 화면">
+  <div class="home-main">
+    <div class="home-head">
+      <div class="topline" style="margin-bottom:22px"><span class="label">Photo Booth ✦ 01—04</span><span class="label" id="homeDate"></span></div>
+      <h1 class="home-title" id="homeTitle"></h1>
+    </div>
+    <div class="home-foot">
+      <p class="home-sub"><b id="homeSub">성도교제의 밤</b> · 은혜로 여기까지, 오늘을 네 컷으로</p>
+      <button class="home-cta" id="homeBtn" type="button"><span class="dot" aria-hidden="true"></span>터치해서 시작</button>
+    </div>
+  </div>
+  <div class="band" aria-hidden="true"><span>Shoot 4 cuts</span><span>Retake</span><span>Scan to save</span><span>Keep the grace</span></div>
+  <div class="home-art" aria-hidden="true">
+    <div class="mock a"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle">Here by Grace</b></div>
+    <div class="mock b"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle2">Here by Grace</b></div>
+  </div>
+</section>
+
+<div class="app" id="app">
+  <section class="stage" aria-label="카메라 화면"><div class="cam">
     <video id="video" autoplay playsinline muted class="mirror"></video>
-    <div class="shotno" id="shotno" hidden></div>
-    <div class="count" id="count" aria-live="assertive"></div>
+    <div class="brackets" aria-hidden="true"></div>
+    <div class="chip" id="chip" hidden><b id="chipNo">1</b><span id="chipPose"></span></div>
+    <div class="count" id="count" hidden>
+      <div class="ring" id="ring">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46"/></svg>
+        <span id="countNum" aria-live="assertive"></span>
+      </div>
+    </div>
     <div class="flash" id="flash"></div>
     <div class="nocam" id="nocam" hidden>
       <p id="nocamMsg"></p>
-      <p>카메라 없이도 샘플 사진이나 내 사진으로 결과물을 미리 볼 수 있어요.</p>
+      <p>카메라 없이도 샘플 사진이나 내 사진으로 결과를 미리 볼 수 있어요.</p>
       <div class="row">
-        <button class="btn" id="sampleBtn" type="button">샘플 사진으로 체험</button>
-        <button class="btn ghost" id="pickBtn" type="button" style="color:#fff">사진 4장 올리기</button>
+        <button class="cta" id="sampleBtn" type="button" style="font-size:17px;padding:16px;background:#fff;color:#111">샘플 사진으로 체험</button>
+        <button class="ghost" id="pickBtn" type="button">사진 4장 올리기</button>
       </div>
       <input id="pickInput" type="file" accept="image/*" multiple hidden>
     </div>
-  </section>
+  </div></section>
 
   <aside class="panel">
-    <div>
+    <div class="topline"><span class="label">Photo Booth ✦ 01—04</span><span class="label" id="dateLabel"></span></div>
+    <header class="brand">
       <h1 id="title">Here by Grace</h1>
-      <p class="sub" id="subtitle">성도교제의 밤</p>
+      <p id="subtitle">성도교제의 밤</p>
+    </header>
+
+    <!-- 처음 화면 -->
+    <div class="view" id="idleView">
+      <button class="back" id="backBtn" type="button">← 처음 화면</button>
+      <p class="lead">은혜로 여기까지,<br>오늘을 네 컷으로 남겨요<small><b id="secs">5</b>초 간격으로 네 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
+      <div class="steps" id="thumbs"></div>
+      <ol class="guide">
+        <li><i>01</i>안내에 맞춰 네 번 촬영</li>
+        <li><i>02</i>마음에 안 드는 컷은 다시 찍기</li>
+        <li><i>03</i>QR을 스캔해 휴대폰에 저장</li>
+      </ol>
+      <button class="cta" id="startBtn" type="button">촬영 시작</button>
     </div>
 
-    <!-- 촬영 전/중 -->
-    <div id="shootView" style="display:flex;flex-direction:column;gap:16px">
-      <div class="thumbs" id="thumbs"></div>
-      <button class="btn" id="startBtn">촬영 시작 (4컷)</button>
-      <p class="hint">버튼을 누르면 <b id="secs">5</b>초마다 한 장씩 네 번 찍어요. 스페이스바나 엔터로도 시작할 수 있어요.</p>
+    <!-- 촬영 중 -->
+    <div class="view" id="shootView" hidden>
+      <div class="pose"><div class="label" id="poseNo">Cut 01 / 04</div><div class="t" id="poseText"></div></div>
+      <div class="steps" id="thumbsLive"></div>
+      <p class="hint" style="text-align:center;margin-top:auto">카메라를 바라봐 주세요</p>
     </div>
 
-    <!-- 촬영 후 -->
-    <div id="doneView" hidden style="display:flex;flex-direction:column;gap:16px">
-      <div class="result">
-        <img id="resultImg" alt="완성된 네컷 사진">
-        <div class="qrbox">
-          <div id="qr"></div>
-          <div class="status" id="status" aria-live="polite"></div>
+    <!-- 결과 -->
+    <div class="view" id="doneView" hidden>
+      <img id="resultImg" class="strip" alt="완성된 네컷 사진">
+      <div class="qrcard">
+        <span class="label">Scan to save</span>
+        <h2 id="qrTitle">사진을 올리는 중이에요</h2>
+        <div class="qrframe"><div id="qr"><div class="spinner" aria-hidden="true"></div></div></div>
+        <div class="status" id="status" aria-live="polite"></div>
+        <ol id="qrSteps" hidden>
+          <li><b>01</b>카메라 켜기</li>
+          <li><b>02</b>QR 비추기</li>
+          <li><b>03</b>사진 저장</li>
+        </ol>
+      </div>
+      <div class="side">
+        <p class="hint">다시 찍고 싶은 컷을 누르세요</p>
+        <div class="steps" id="thumbs2"></div>
+        <div class="row">
+          <button class="ghost" id="retryBtn" type="button" hidden>업로드 다시 시도</button>
+          <button class="ghost" id="saveBtn" type="button">이 기기에 저장</button>
         </div>
+        <button class="cta" id="nextBtn" type="button">다음 분 촬영하기</button>
+        <div class="bye" id="bye"></div>
       </div>
-      <p class="hint">작은 사진을 누르면 그 컷만 다시 찍을 수 있어요.</p>
-      <div class="thumbs" id="thumbs2"></div>
-      <div class="row">
-        <button class="btn ghost" id="retryBtn" hidden>업로드 다시 시도</button>
-        <button class="btn ghost" id="saveBtn">이 기기에 저장</button>
-      </div>
-      <button class="btn" id="nextBtn">다음 분 촬영하기</button>
     </div>
   </aside>
 </div>
 
-<button class="gear" id="gear">설정</button>
+<button class="gear" id="gear" type="button" hidden>설정</button>
+<button class="corner" id="corner" type="button" aria-label="운영 설정 (길게 누르기)"></button>
 <dialog id="settings">
   <form method="dialog" id="settingsForm">
-    <strong>운영 설정</strong>
-    <label>카메라 <select id="camSel"></select></label>
-    <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15"></label>
-    <label><span><input id="setMirror" type="checkbox"> 좌우 반전 (셀카 모드)</span></label>
-    <label><span><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 자동 저장 (백업)</span></label>
+    <h2>Settings</h2>
     <label>행사 코드 (사진 업로드 비밀번호) <input id="setCode" type="password" autocomplete="off"></label>
-    <label>업로드 주소 (비워 두면 기본값 사용) <input id="setUrl" type="text" placeholder="/api/upload"></label>
-    <p class="hint">여기서 바꾼 값은 이 브라우저에만 기억되고, config.js보다 우선합니다.</p>
-    <div class="row"><button class="btn ghost" value="cancel">닫기</button><button class="btn" id="saveSettings" value="ok">저장</button></div>
+    <label>카메라 <select id="camSel"></select></label>
+    <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15" inputmode="numeric"></label>
+    <label class="check"><input id="setMirror" type="checkbox"> 좌우 반전 (셀카처럼)</label>
+    <label class="check"><input id="setMono" type="checkbox"> 흑백 사진으로 찍기</label>
+    <label class="check"><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 저장 (백업)</label>
+    <label>업로드 주소 (비워 두면 기본값) <input id="setUrl" type="text" placeholder="/api/upload"></label>
+    <p class="hint">행사 코드를 넣으면 "설정" 버튼이 사라져요. 다시 열려면 화면 오른쪽 위 모서리를 2초 동안 길게 누르세요.</p>
+    <div class="row"><button class="ghost" value="cancel">닫기</button><button class="save" value="ok">저장</button></div>
   </form>
 </dialog>
 
@@ -167,7 +337,7 @@
 <script src="vendor/qrcode.js"></script>
 <script>
 (() => {
-  const C = Object.assign({ slots: [], countdown: 5, mirror: true, jpegQuality: 0.9 }, window.BOOTH_CONFIG || {});
+  const C = Object.assign({ slots: [], countdown: 5, mirror: true, jpegQuality: 0.9, poses: [], idleReset: 90 }, window.BOOTH_CONFIG || {});
   const W = 1200, H = 3600;                       // 결과 이미지 크기 (2x6인치 비율)
   const $ = (id) => document.getElementById(id);
 
@@ -176,10 +346,17 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, mono: !!C.mono, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
 
   $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
+  const poseOf = (i) => C.poses[i] || "자유 포즈";
+  const two = (n) => String(n).padStart(2, "0");
+  { const d = new Date(), t = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); $("dateLabel").textContent = t; $("homeDate").textContent = t; }
+  // 홈 타이틀: 단어마다 한 줄
+  for (const w of String(C.title || "Here by Grace").split(/\s+/)) { const sp = document.createElement("span"); sp.textContent = w; $("homeTitle").appendChild(sp); }
+  $("homeSub").textContent = C.subtitle || "";
+  $("mockTitle").textContent = $("mockTitle2").textContent = C.title || "Here by Grace";
 
   // ---- 카메라 ----
   const video = $("video");
@@ -196,29 +373,16 @@
       await video.play().catch(() => {});
     } catch (e) {
       $("nocam").hidden = false;
-      $("nocamMsg").textContent = "카메라를 켤 수 없어요. 브라우저 주소창의 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
+      $("nocamMsg").textContent = "카메라를 켤 수 없어요. 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
     }
     video.classList.toggle("mirror", !!S.mirror);
   }
 
-  // ---- 촬영 ----
-  const shots = [null, null, null, null];        // 각 컷: 1040x694 비율 캔버스
-  let busy = false;
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  // ---- 소리 / 화면 켜 두기 ----
   let audio;
   function unlockAudio() {
-    try {
-      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-      if (audio.state === "suspended") audio.resume();
-    } catch {}
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === "suspended") audio.resume(); } catch {}
   }
-  // 촬영 중 화면이 꺼지지 않게
-  let wakeLock = null;
-  async function keepAwake() {
-    try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch {}
-  }
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
-  document.addEventListener("pointerdown", () => { unlockAudio(); keepAwake(); }, { passive: true });
   function beep(freq, len) {
     try {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
@@ -227,23 +391,30 @@
       o.start(); o.stop(audio.currentTime + len);
     } catch {}
   }
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch {}
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
+  document.addEventListener("pointerdown", () => { unlockAudio(); keepAwake(); bumpIdle(); }, { passive: true });
 
+  // ---- 사진 만들기 ----
+  const shots = [null, null, null, null];
+  let busy = false, liveIndex = -1;
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const slotRatio = () => { const s = C.slots[0] || { w: 1040, h: 694 }; return s.w / s.h; };
 
-  // 카메라가 없을 때 쓰는 샘플 컷
-  const SAMPLE_COLORS = ["#e53935", "#fb8c00", "#43a047", "#3949ab"];
+  const SAMPLE_COLORS = ["#9a9a9a", "#7a7a7a", "#b0b0b0", "#6a6a6a"];
   function sampleShot(i) {
     const c = document.createElement("canvas"); c.width = 1560; c.height = Math.round(1560 / slotRatio());
     const ctx = c.getContext("2d");
     const g = ctx.createLinearGradient(0, 0, c.width, c.height);
-    g.addColorStop(0, SAMPLE_COLORS[i % 4]); g.addColorStop(1, "#1d2030");
+    g.addColorStop(0, SAMPLE_COLORS[i % 4]); g.addColorStop(1, "#2a2a2a");
     ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.font = "160px 'Gowun Dodum', sans-serif"; ctx.fillText("샘플 " + (i + 1), c.width / 2, c.height / 2);
+    ctx.font = "700 150px 'Noto Sans KR', sans-serif"; ctx.fillText("샘플 " + (i + 1), c.width / 2, c.height / 2);
     return c;
   }
-
-  // 올린 사진을 사진 칸 비율에 맞춰 가운데를 잘라 냄
   function cropToShot(img) {
     const ratio = slotRatio(), c = document.createElement("canvas");
     c.width = 1560; c.height = Math.round(1560 / ratio);
@@ -253,45 +424,52 @@
     c.getContext("2d").drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, c.width, c.height);
     return c;
   }
-
   function grab(i) {
-    const ratio = slotRatio();
-    const vw = video.videoWidth, vh = video.videoHeight;
+    const ratio = slotRatio(), vw = video.videoWidth, vh = video.videoHeight;
     if (!vw) return sampleShot(i);
-    const c = document.createElement("canvas");
-    c.width = 1560; c.height = Math.round(1560 / ratio);
+    const c = document.createElement("canvas"); c.width = 1560; c.height = Math.round(1560 / ratio);
     const ctx = c.getContext("2d");
     let sw = vw, sh = vw / ratio;
     if (sh > vh) { sh = vh; sw = vh * ratio; }
     if (S.mirror) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
-    if (vw) ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+    ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+    if (S.mono) toMono(c);
     return c;
   }
 
+  // 흑백: 모든 브라우저에서 되도록 픽셀을 직접 바꿈
+  function toMono(c) {
+    const ctx = c.getContext("2d"), img = ctx.getImageData(0, 0, c.width, c.height), d = img.data;
+    for (let k = 0; k < d.length; k += 4) { const y = d[k] * .299 + d[k + 1] * .587 + d[k + 2] * .114; d[k] = d[k + 1] = d[k + 2] = y; }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  // ---- 카운트다운 ----
+  const ring = $("ring"), countNum = $("countNum");
+  function showRing(text, ready) {
+    $("count").hidden = false; countNum.textContent = text;
+    ring.classList.toggle("ready", !!ready);
+    ring.classList.remove("tick"); void ring.offsetWidth; if (!ready) ring.classList.add("tick");
+  }
   async function takeOne(i) {
-    $("shotno").hidden = false;
-    $("shotno").textContent = (i + 1) + " / 4";
-    for (let s = S.countdown; s > 0; s--) {
-      $("count").textContent = s; beep(660, 0.08); await sleep(1000);
-    }
-    $("count").textContent = "";
+    liveIndex = i; renderThumbs();
+    $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/04"; $("chipPose").textContent = poseOf(i);
+    $("poseNo").textContent = "Cut " + two(i + 1) + " / 04"; $("poseText").textContent = poseOf(i);
+    showRing("준비!", true); await sleep(900);
+    for (let s = S.countdown; s > 0; s--) { showRing(s); beep(660, 0.08); await sleep(1000); }
+    $("count").hidden = true;
     beep(990, 0.15);
     shots[i] = grab(i);
     const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
-    renderThumbs();
-    await sleep(700);
+    liveIndex = -1; renderThumbs();
+    await sleep(800);
   }
-
   async function runSession(indices) {
     if (busy) return;
-    busy = true; $("startBtn").disabled = true; $("nextBtn").disabled = true;
-    try {
-      for (const i of indices) await takeOne(i);
-    } finally {
-      $("shotno").hidden = true; busy = false;
-      $("startBtn").disabled = false; $("nextBtn").disabled = false;
-    }
-    if (shots.every(Boolean)) finish();
+    busy = true; show("shoot");
+    try { for (const i of indices) await takeOne(i); }
+    finally { $("chip").hidden = true; $("count").hidden = true; busy = false; liveIndex = -1; }
+    if (shots.every(Boolean)) finish(); else show("idle");
   }
 
   // ---- 프레임 합성 ----
@@ -302,141 +480,146 @@
     im.onerror = () => console.warn("프레임 이미지를 불러오지 못했어요:", C.frameImage);
     im.src = C.frameImage;
   }
-
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
-
   function compose() {
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const ctx = c.getContext("2d");
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
     C.slots.forEach((s, i) => {
-      ctx.save(); roundRect(ctx, s.x, s.y, s.w, s.h, frameImg ? 0 : 18); ctx.clip();
-      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h);
-      else { ctx.fillStyle = "#e8e9ee"; ctx.fillRect(s.x, s.y, s.w, s.h); }
+      ctx.save(); roundRect(ctx, s.x, s.y, s.w, s.h, frameImg ? 0 : 6); ctx.clip();
+      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h); else { ctx.fillStyle = "#e8e9ee"; ctx.fillRect(s.x, s.y, s.w, s.h); }
       ctx.restore();
     });
     if (frameImg) {
       ctx.drawImage(frameImg, 0, 0, W, H);
     } else {
-      // 기본 프레임: 하단 글자만 (디자인은 frames/frame.png로 교체)
-      const top = Math.max(...C.slots.map(s => s.y + s.h));
-      const mid = top + (H - top) / 2;
-      ctx.fillStyle = "#1d2030"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.font = "600 150px Caveat, cursive"; ctx.fillText(C.title || "", W / 2, mid - 70);
-      ctx.fillStyle = "#6b7083";
-      ctx.font = "48px 'Gowun Dodum', sans-serif"; ctx.fillText(C.subtitle || "", W / 2, mid + 60);
-      ctx.font = "38px 'Gowun Dodum', sans-serif"; ctx.fillText(C.footer || "", W / 2, mid + 130);
+      // 기본 프레임: 흑백 에디토리얼 (디자인 PNG는 frames/frame.png로 교체)
+      const left = C.slots[0].x, right = C.slots[0].x + C.slots[0].w;
+      ctx.fillStyle = "#111"; ctx.textBaseline = "alphabetic";
+      ctx.textAlign = "left"; ctx.font = "150px Anton, 'Arial Narrow', sans-serif";
+      ctx.fillText(String(C.title || "").toUpperCase(), left, H - 200);
+      ctx.fillStyle = "#8a8a8a"; ctx.font = "500 40px 'Noto Sans KR', sans-serif";
+      ctx.fillText(C.subtitle || "", left, H - 120);
+      ctx.textAlign = "right"; ctx.font = "600 30px Inter, sans-serif";
+      ctx.fillText(String(C.footer || "").toUpperCase() + "  ✦", right, H - 120);
+      // 오른쪽 여백 세로 글씨
+      ctx.save(); ctx.translate(W - 34, C.slots[0].y); ctx.rotate(Math.PI / 2);
+      ctx.textAlign = "left"; ctx.fillStyle = "#b5b5b5"; ctx.font = "600 22px Inter, sans-serif";
+      ctx.fillText("KEEP THE GRACE ALIVE", 0, 0); ctx.restore();
     }
     return c;
   }
 
   // ---- 결과 / 업로드 / QR ----
-  let current = null;   // { blob, url, name }
+  let current = null, uploaded = false;
   function stamp() {
     const d = new Date(), p = (n) => String(n).padStart(2, "0");
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
   }
-
   async function finish() {
-    await document.fonts.ready.catch(() => {});
+    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
     if (current) URL.revokeObjectURL(current.url);
     current = { blob, url: URL.createObjectURL(blob), name: "herebygrace-" + stamp() + ".jpg" };
     $("resultImg").src = current.url;
-    showDone(true);
-    $("qr").innerHTML = "";
-    if (S.autoSave && !window.claude) saveLocal();   // 아티팩트 미리보기에서는 자동 저장 안 함
+    renderThumbs(); show("done");
+    if (S.autoSave && !window.claude) saveLocal();
     upload();
   }
-
   async function saveLocal() {
     if (!current) return;
-    // Claude 아티팩트 안에서는 일반 다운로드가 막혀 있어 downloads 기능을 씀
     const dl = window.claude ? await window.claude.use("downloads").catch(() => null) : null;
     if (dl) { try { await dl.save({ filename: current.name, data: current.blob }); } catch (e) { console.warn(e); } return; }
     const a = document.createElement("a");
     a.href = current.url; a.download = current.name; document.body.appendChild(a); a.click(); a.remove();
   }
-
   function setStatus(text, cls) { const s = $("status"); s.textContent = text; s.className = "status " + (cls || ""); }
-
+  function qrLoading() { $("qr").innerHTML = '<div class="spinner" aria-hidden="true"></div>'; $("qrSteps").hidden = true; $("qrTitle").textContent = "사진을 올리는 중이에요"; }
   async function upload() {
-    $("retryBtn").hidden = true;
-    // 설정 화면에서 비워 두면 config.js의 주소를 씀
+    uploaded = false; $("retryBtn").hidden = true; qrLoading(); stopIdle();
     const url = S.uploadUrl || C.uploadUrl;
-    if (!url) { setStatus("업로드 주소가 설정되지 않아 QR을 만들 수 없어요. (설정 → 업로드 주소)", "err"); return; }
-    setStatus("사진을 올리는 중이에요…");
+    if (!url) { $("qr").innerHTML = ""; setStatus("업로드 주소가 설정되지 않아 QR을 만들 수 없어요.", "err"); return; }
+    setStatus("");
     try {
       let r;
       if (/script\.google\.com/.test(url)) {
-        // 구글 Apps Script: JSON + base64
         const b64 = await new Promise((res, rej) => {
           const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(current.blob);
         });
         r = await fetch(url, { method: "POST", body: JSON.stringify({ name: current.name, data: b64 }) });
       } else {
-        // Cloudflare R2 (functions/api/upload.js): JPEG 그대로 + 행사 코드
-        r = await fetch(url, { method: "POST", body: current.blob,
-          headers: { "Content-Type": "image/jpeg", "X-Event-Code": S.eventCode || "" } });
-        if (r.status === 401) {
-          setStatus("행사 코드가 맞지 않아요. 설정 → 행사 코드를 확인해 주세요.", "err");
-          $("retryBtn").hidden = false; return;
-        }
+        r = await fetch(url, { method: "POST", body: current.blob, headers: { "Content-Type": "image/jpeg", "X-Event-Code": S.eventCode || "" } });
+        if (r.status === 401) { $("qr").innerHTML = ""; setStatus("행사 코드가 맞지 않아요. 운영 설정에서 행사 코드를 확인해 주세요.", "err"); $("retryBtn").hidden = false; return; }
       }
       const j = await r.json();
       if (!j.ok || !j.page) throw new Error(j.error || "응답 오류");
-      showQR(j.page);
-      setStatus("휴대폰 카메라로 QR을 찍으면 사진을 받을 수 있어요!", "ok");
+      showQR(j.page); $("qrSteps").hidden = false; setStatus(""); $("qrTitle").textContent = "QR을 찍어 사진을 받아 가세요";
+      uploaded = true; bumpIdle();
     } catch (e) {
       console.error(e);
-      setStatus("업로드에 실패했어요. 인터넷 연결을 확인하고 다시 시도해 주세요.", "err");
+      $("qr").innerHTML = ""; $("qrTitle").textContent = "사진을 올리지 못했어요";
+      setStatus("업로드에 실패했어요. 인터넷 연결을 확인하고 '업로드 다시 시도'를 눌러 주세요.", "err");
       $("retryBtn").hidden = false;
     }
   }
-
   function showQR(text) {
     const qr = qrcode(0, "M"); qr.addData(text); qr.make();
-    const n = qr.getModuleCount(), cell = 8, c = document.createElement("canvas");
-    c.width = c.height = n * cell; const ctx = c.getContext("2d");
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = "#000";
-    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) ctx.fillRect(k * cell, r * cell, cell, cell);
-    c.setAttribute("aria-label", "사진 다운로드 QR 코드");
+    const n = qr.getModuleCount(), cell = 8, quiet = 2, c = document.createElement("canvas");
+    c.width = c.height = (n + quiet * 2) * cell; const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.fillStyle = "#111";
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) ctx.fillRect((k + quiet) * cell, (r + quiet) * cell, cell, cell);
+    c.setAttribute("role", "img"); c.setAttribute("aria-label", "사진 다운로드 QR 코드");
     $("qr").innerHTML = ""; $("qr").appendChild(c);
   }
 
-  // ---- 썸네일 ----
+  // ---- 결과 화면 자동 초기화 (업로드가 끝난 뒤에만) ----
+  let idleTimer = null, idleLeft = 0;
+  function stopIdle() { clearInterval(idleTimer); idleTimer = null; $("bye").textContent = ""; }
+  function bumpIdle() {
+    if (!uploaded || $("doneView").hidden || !C.idleReset) return;
+    stopIdle(); idleLeft = C.idleReset;
+    const tick = () => {
+      $("bye").textContent = idleLeft + "초 뒤 처음 화면으로 돌아가요";
+      if (idleLeft-- <= 0) { stopIdle(); goHome(); }
+    };
+    tick(); idleTimer = setInterval(tick, 1000);
+  }
+
+  // ---- 칸 / 화면 전환 ----
   function renderThumbs() {
-    for (const id of ["thumbs", "thumbs2"]) {
+    for (const id of ["thumbs", "thumbsLive", "thumbs2"]) {
       const box = $(id); box.innerHTML = "";
       shots.forEach((s, i) => {
         const b = document.createElement("button");
-        b.type = "button"; b.textContent = i + 1;
-        b.setAttribute("aria-label", (i + 1) + "번째 컷" + (s ? " 다시 찍기" : ""));
+        b.type = "button"; b.className = "slot"; b.textContent = two(i + 1);
+        b.setAttribute("aria-label", (i + 1) + "번째 컷" + (s ? (id === "thumbs2" ? " 다시 찍기" : " 촬영됨") : ""));
         if (s) { b.classList.add("filled"); b.style.backgroundImage = "url(" + s.toDataURL("image/jpeg", 0.5) + ")"; }
-        b.disabled = id === "thumbs";
-        b.onclick = () => { if (!busy && s) { showDone(false); runSession([i]); } };
+        if (i === liveIndex) b.classList.add("now");
+        if (id === "thumbs2" && s) { b.classList.add("retake"); b.onclick = () => { if (!busy) runSession([i]); }; }
+        else b.tabIndex = -1;
         box.appendChild(b);
       });
     }
   }
-
-  function showDone(on) {
-    $("doneView").hidden = !on; $("shootView").hidden = on;
-    document.querySelector(".app").classList.toggle("done", on);
+  function show(view) {
+    $("idleView").hidden = view !== "idle"; $("shootView").hidden = view !== "shoot"; $("doneView").hidden = view !== "done";
+    $("app").classList.toggle("done", view === "done");
+    $("app").classList.toggle("shooting", view === "shoot");
+    if (view !== "done") stopIdle();
   }
-
-  function reset() {
-    shots.fill(null); renderThumbs();
-    showDone(false);
-  }
+  function reset() { shots.fill(null); uploaded = false; renderThumbs(); show("idle"); }
+  function showHome(on) { $("home").hidden = !on; if (on) { reset(); } }
+  function goHome() { if (!busy) showHome(true); }
 
   // ---- 이벤트 ----
   $("startBtn").onclick = () => { unlockAudio(); reset(); runSession([0, 1, 2, 3]); };
   $("nextBtn").onclick = reset;
+  $("home").onclick = () => { unlockAudio(); showHome(false); };
+  $("backBtn").onclick = goHome;
   $("sampleBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
   $("pickBtn").onclick = () => $("pickInput").click();
   $("pickInput").onchange = async (e) => {
@@ -444,26 +627,29 @@
     if (!files.length || busy) return;
     reset();
     for (let i = 0; i < 4; i++) {
-      const f = files[i % files.length], url = URL.createObjectURL(f);
-      const img = new Image();
+      const f = files[i % files.length], url = URL.createObjectURL(f), img = new Image();
       await new Promise((res) => { img.onload = img.onerror = res; img.src = url; });
       shots[i] = img.naturalWidth ? cropToShot(img) : sampleShot(i);
       URL.revokeObjectURL(url);
     }
-    renderThumbs(); finish();
+    finish();
   };
   $("saveBtn").onclick = saveLocal;
   $("retryBtn").onclick = upload;
   document.addEventListener("keydown", (e) => {
     if ($("settings").open || busy) return;
+    bumpIdle();
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      if (!$("shootView").hidden) $("startBtn").click(); else $("nextBtn").click();
+      if (!$("home").hidden) { $("home").click(); return; }
+      if (!$("idleView").hidden) $("startBtn").click(); else if (!$("doneView").hidden) $("nextBtn").click();
     }
   });
 
-  $("gear").onclick = async () => {
-    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror;
+  // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
+  function syncGear() { $("gear").hidden = !!S.eventCode; }
+  async function openSettings() {
+    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setMono").checked = !!S.mono;
     $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
     const sel = $("camSel"); sel.innerHTML = "";
     try {
@@ -473,23 +659,32 @@
       });
     } catch {}
     $("settings").showModal();
-  };
+  }
+  $("gear").onclick = openSettings;
+  let pressTimer = null;
+  const corner = $("corner");
+  corner.addEventListener("pointerdown", () => { pressTimer = setTimeout(openSettings, 2000); });
+  for (const ev of ["pointerup", "pointerleave", "pointercancel"]) corner.addEventListener(ev, () => clearTimeout(pressTimer));
+  corner.addEventListener("contextmenu", (e) => e.preventDefault());
   $("settingsForm").addEventListener("submit", (e) => {
     if (e.submitter && e.submitter.value !== "ok") return;
     const camChanged = $("camSel").value && $("camSel").value !== S.deviceId;
     S = Object.assign(S, {
       countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
-      mirror: $("setMirror").checked, autoSave: $("setAutoSave").checked,
+      mirror: $("setMirror").checked, mono: $("setMono").checked, autoSave: $("setAutoSave").checked,
       uploadUrl: $("setUrl").value.trim(), eventCode: $("setCode").value.trim(), deviceId: $("camSel").value || S.deviceId,
     });
-    store.set(S); $("secs").textContent = S.countdown;
+    store.set(S); $("secs").textContent = S.countdown; syncGear();
     video.classList.toggle("mirror", !!S.mirror);
     if (camChanged) startCamera();
   });
 
   $("secs").textContent = S.countdown;
-  renderThumbs();
-  startCamera();
+  syncGear(); renderThumbs(); show("idle"); startCamera();
+  // 촬영 화면에서 아무것도 안 하면 홈으로 (2분)
+  let readyTimer = null;
+  const armReady = () => { clearTimeout(readyTimer); readyTimer = setTimeout(() => { if (!$("idleView").hidden && $("home").hidden && !$("settings").open) goHome(); }, 120000); };
+  document.addEventListener("pointerdown", armReady, { passive: true }); armReady();
 })();
 </script>
 </body>
