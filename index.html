@@ -46,6 +46,14 @@
   .cam { position: relative; width: min(100cqw, 150cqh); aspect-ratio: 3 / 2; border-radius: 32px; overflow: hidden; background: #000; }
   .cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cam video.mirror { transform: scaleX(-1); }
+  /* 필터 미리보기: 영상에는 CSS 필터, 빛 효과는 위에 덧씌움 (찍힐 때는 같은 효과를 캔버스로 입힘) */
+  .cam video { transition: filter .3s ease; }
+  .lookfx { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .3s ease; mix-blend-mode: screen; }
+  .lookfx.soft { opacity: 1; background: radial-gradient(80% 70% at 50% 45%, rgba(255,255,255,.18), transparent 70%); }
+  .lookfx.grace { opacity: 1; background:
+      radial-gradient(70% 60% at 30% -5%, rgba(255,226,160,.55), transparent 65%),
+      linear-gradient(118deg, transparent 18%, rgba(255,240,205,.30) 24%, transparent 31%, transparent 38%, rgba(255,240,205,.22) 44%, transparent 52%, transparent 60%, rgba(255,240,205,.16) 66%, transparent 73%); }
+  .lookfx.film { opacity: 1; mix-blend-mode: multiply; background: radial-gradient(90% 90% at 50% 50%, transparent 55%, rgba(60,40,20,.35)); }
   /* 네 모서리 브래킷 */
   .brackets { position: absolute; inset: 22px; z-index: 2; pointer-events: none; --b: rgba(255,255,255,.9); --l: 44px; --t: 3px;
     background:
@@ -111,6 +119,12 @@
   .ghost { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 500; cursor: pointer; color: var(--ink); }
   .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .row > * { flex: 1 1 0; }
+
+  .opt { display: grid; gap: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 10px 16px; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chips button .sw { display: inline-block; width: 12px; height: 12px; border-radius: 999px; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
 
   .pose { padding: 12px 0 4px; }
   .pose .t { font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
@@ -206,7 +220,9 @@
     .brand h1 { font-size: 52px; }
     .panel { gap: 20px; }
     #idleView .guide { display: none; }
-    #idleView .steps, #shootView .steps { max-width: 400px; }
+    #idleView .steps, #idleView .lead small { display: none; }
+    #shootView .steps { max-width: 400px; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; }
     .lead { font-size: 28px; }
     #doneView { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 20px; }
     .strip { height: auto; width: 100%; max-height: none; }
@@ -241,6 +257,7 @@
 <div class="app" id="app">
   <section class="stage" aria-label="카메라 화면"><div class="cam">
     <video id="video" autoplay playsinline muted class="mirror"></video>
+    <div class="lookfx" id="lookfx" aria-hidden="true"></div>
     <div class="brackets" aria-hidden="true"></div>
     <div class="chip" id="chip" hidden><b id="chipNo">1</b><span id="chipPose"></span></div>
     <div class="count" id="count" hidden>
@@ -273,6 +290,8 @@
       <button class="back" id="backBtn" type="button">← 처음 화면</button>
       <p class="lead">은혜로 여기까지,<br>오늘을 네 컷으로 남겨요<small><b id="secs">5</b>초 간격으로 네 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
       <div class="steps" id="thumbs"></div>
+      <div class="opt"><span class="label">Filter</span><div class="chips" id="lookChips" role="group" aria-label="필터"></div></div>
+      <div class="opt"><span class="label">Frame</span><div class="chips" id="frameChips" role="group" aria-label="프레임 색"></div></div>
       <ol class="guide">
         <li><i>01</i>안내에 맞춰 네 번 촬영</li>
         <li><i>02</i>마음에 안 드는 컷은 다시 찍기</li>
@@ -325,7 +344,6 @@
     <label>카메라 <select id="camSel"></select></label>
     <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15" inputmode="numeric"></label>
     <label class="check"><input id="setMirror" type="checkbox"> 좌우 반전 (셀카처럼)</label>
-    <label class="check"><input id="setMono" type="checkbox"> 흑백 사진으로 찍기</label>
     <label class="check"><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 저장 (백업)</label>
     <label>업로드 주소 (비워 두면 기본값) <input id="setUrl" type="text" placeholder="/api/upload"></label>
     <p class="hint">행사 코드를 넣으면 "설정" 버튼이 사라져요. 다시 열려면 화면 오른쪽 위 모서리를 2초 동안 길게 누르세요.</p>
@@ -346,7 +364,7 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, mono: !!C.mono, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
 
   $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
@@ -433,15 +451,92 @@
     if (sh > vh) { sh = vh; sw = vh * ratio; }
     if (S.mirror) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
     ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
-    if (S.mono) toMono(c);
+    applyLook(c, look);
     return c;
   }
 
-  // 흑백: 모든 브라우저에서 되도록 픽셀을 직접 바꿈
-  function toMono(c) {
-    const ctx = c.getContext("2d"), img = ctx.getImageData(0, 0, c.width, c.height), d = img.data;
-    for (let k = 0; k < d.length; k += 4) { const y = d[k] * .299 + d[k + 1] * .587 + d[k + 2] * .114; d[k] = d[k + 1] = d[k + 2] = y; }
+  // ---- 필터 ----
+  // css: 카메라 미리보기용 / 나머지: 찍힌 사진에 픽셀로 입히는 값 (아이패드 사파리에서도 같게 나오도록 캔버스 필터 대신 직접 계산)
+  const LOOKS = {
+    none:  { name: "원본" },
+    soft:  { name: "뽀샤시", css: "brightness(1.08) contrast(.9) saturate(1.06)", b: 1.08, c: .9, s: 1.06, warm: 4, bloom: .3 },
+    mono:  { name: "흑백", css: "grayscale(1) contrast(1.12) brightness(1.03)", b: 1.03, c: 1.12, s: 0 },
+    film:  { name: "필름", css: "contrast(.94) saturate(.82) sepia(.2) brightness(1.03)", b: 1.03, c: .94, s: .82, warm: 14, fade: 22, grain: 12, vignette: .35 },
+    grace: { name: "은혜의 빛", css: "brightness(1.07) contrast(.94) saturate(1.08) sepia(.16)", b: 1.07, c: .94, s: 1.08, warm: 16, bloom: .38, rays: true },
+  };
+  const FRAMES = { white: { name: "화이트", bg: "#ffffff", ink: "#111111", sub: "#8a8a8a", side: "#b5b5b5", empty: "#e8e9ee" },
+                   black: { name: "블랙",  bg: "#111111", ink: "#ffffff", sub: "#9a9a9a", side: "#555555", empty: "#2a2a2a" } };
+  let look = LOOKS[C.look] ? C.look : "none", frame = FRAMES[C.frame] ? C.frame : "white";
+
+  function applyLook(c, key) {
+    const L = LOOKS[key]; if (!L || key === "none") return;
+    const ctx = c.getContext("2d"), W2 = c.width, H2 = c.height;
+    const img = ctx.getImageData(0, 0, W2, H2), d = img.data;
+    const b = L.b || 1, ct = L.c || 1, sat = L.s ?? 1, warm = L.warm || 0, fade = L.fade || 0, grain = L.grain || 0;
+    for (let k = 0; k < d.length; k += 4) {
+      let r = d[k] * b, g = d[k + 1] * b, bl = d[k + 2] * b;
+      r = (r - 128) * ct + 128; g = (g - 128) * ct + 128; bl = (bl - 128) * ct + 128;
+      const y = r * .299 + g * .587 + bl * .114;
+      r = y + (r - y) * sat; g = y + (g - y) * sat; bl = y + (bl - y) * sat;
+      r += warm; g += warm * .4; bl -= warm * .6;
+      if (fade) { const f = (255 - fade) / 255; r = fade + r * f; g = fade + g * f; bl = fade + bl * f; }
+      if (grain) { const n = (Math.random() - .5) * grain * 2; r += n; g += n; bl += n; }
+      d[k] = r; d[k + 1] = g; d[k + 2] = bl;
+    }
     ctx.putImageData(img, 0, 0);
+    if (L.bloom) {   // 은은하게 번지는 빛: 작게 줄였다 키운 사본을 밝게 겹침
+      const t = document.createElement("canvas"); t.width = Math.round(W2 / 10); t.height = Math.round(H2 / 10);
+      t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
+      ctx.save(); ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = L.bloom; ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(t, 0, 0, W2, H2); ctx.restore();
+    }
+    if (L.vignette) {
+      const v = ctx.createRadialGradient(W2 / 2, H2 / 2, H2 * .45, W2 / 2, H2 / 2, W2 * .65);
+      v.addColorStop(0, "rgba(40,25,10,0)"); v.addColorStop(1, `rgba(40,25,10,${L.vignette})`);
+      ctx.fillStyle = v; ctx.fillRect(0, 0, W2, H2);
+    }
+    if (L.rays) graceLight(ctx, W2, H2);
+  }
+
+  // 은혜의 빛: 위에서 내려오는 금빛 + 빛줄기 + 작은 반짝임
+  function graceLight(ctx, w, h) {
+    ctx.save(); ctx.globalCompositeOperation = "screen";
+    const glow = ctx.createRadialGradient(w * .3, -h * .05, 0, w * .3, -h * .05, h * 1.05);
+    glow.addColorStop(0, "rgba(255,226,160,.55)"); glow.addColorStop(1, "rgba(255,226,160,0)");
+    ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
+    for (const [x0, wid, a] of [[.12, .07, .26], [.36, .06, .2], [.6, .05, .14]]) {
+      const g = ctx.createLinearGradient(w * x0, 0, w * (x0 + wid), 0);
+      g.addColorStop(0, "rgba(255,240,205,0)"); g.addColorStop(.5, `rgba(255,240,205,${a})`); g.addColorStop(1, "rgba(255,240,205,0)");
+      ctx.fillStyle = g; ctx.beginPath();
+      ctx.moveTo(w * x0, 0); ctx.lineTo(w * (x0 + wid), 0); ctx.lineTo(w * (x0 + wid + .32), h); ctx.lineTo(w * (x0 + .32), h); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+    ctx.save(); ctx.fillStyle = "rgba(255,255,255,.9)";
+    for (let k = 0; k < 9; k++) {
+      const x = w * (.05 + Math.random() * .9), y = h * (.04 + Math.random() * .3), r = w * (.006 + Math.random() * .012);
+      ctx.globalAlpha = .5 + Math.random() * .5;
+      ctx.beginPath(); ctx.moveTo(x, y - r * 2.2); ctx.quadraticCurveTo(x, y, x + r * 2.2, y); ctx.quadraticCurveTo(x, y, x, y + r * 2.2);
+      ctx.quadraticCurveTo(x, y, x - r * 2.2, y); ctx.quadraticCurveTo(x, y, x, y - r * 2.2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function renderChips() {
+    const mk = (box, items, cur, pick, swatch) => {
+      box.innerHTML = "";
+      for (const [k, v] of Object.entries(items)) {
+        const bt = document.createElement("button"); bt.type = "button"; bt.setAttribute("aria-pressed", String(k === cur));
+        if (swatch) { const sw = document.createElement("span"); sw.className = "sw"; sw.style.background = v.bg; bt.appendChild(sw); }
+        bt.appendChild(document.createTextNode(v.name));
+        bt.onclick = () => pick(k); box.appendChild(bt);
+      }
+    };
+    mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
+    mk($("frameChips"), FRAMES, frame, (k) => { frame = k; renderChips(); }, true);
+  }
+  function previewLook() {
+    video.style.filter = (LOOKS[look] && LOOKS[look].css) || "none";
+    $("lookfx").className = "lookfx " + look;
   }
 
   // ---- 카운트다운 ----
@@ -484,13 +579,17 @@
     ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
   }
+  // 사진마다 은혜 말씀 하나 (config.verses에서 랜덤)
+  let verseNow = null;
+  const pickVerse = () => { const v = Array.isArray(C.verses) ? C.verses : []; verseNow = C.verse === false || !v.length ? null : v[Math.floor(Math.random() * v.length)]; };
   function compose() {
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const ctx = c.getContext("2d");
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+    const F = FRAMES[frame] || FRAMES.white;
+    ctx.fillStyle = frameImg ? "#ffffff" : F.bg; ctx.fillRect(0, 0, W, H);
     C.slots.forEach((s, i) => {
       ctx.save(); roundRect(ctx, s.x, s.y, s.w, s.h, frameImg ? 0 : 6); ctx.clip();
-      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h); else { ctx.fillStyle = "#e8e9ee"; ctx.fillRect(s.x, s.y, s.w, s.h); }
+      if (shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h); else { ctx.fillStyle = F.empty; ctx.fillRect(s.x, s.y, s.w, s.h); }
       ctx.restore();
     });
     if (frameImg) {
@@ -498,16 +597,27 @@
     } else {
       // 기본 프레임: 흑백 에디토리얼 (디자인 PNG는 frames/frame.png로 교체)
       const left = C.slots[0].x, right = C.slots[0].x + C.slots[0].w;
-      ctx.fillStyle = "#111"; ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = F.ink; ctx.textBaseline = "alphabetic";
       ctx.textAlign = "left"; ctx.font = "150px Anton, 'Arial Narrow', sans-serif";
-      ctx.fillText(String(C.title || "").toUpperCase(), left, H - 200);
-      ctx.fillStyle = "#8a8a8a"; ctx.font = "500 40px 'Noto Sans KR', sans-serif";
-      ctx.fillText(C.subtitle || "", left, H - 120);
+      ctx.fillText(String(C.title || "").toUpperCase(), left, H - 260);
+      ctx.fillStyle = F.sub; ctx.font = "500 40px 'Noto Sans KR', sans-serif";
+      ctx.fillText(C.subtitle || "", left, H - 185);
       ctx.textAlign = "right"; ctx.font = "600 30px Inter, sans-serif";
-      ctx.fillText(String(C.footer || "").toUpperCase() + "  ✦", right, H - 120);
+      ctx.fillText(String(C.footer || "").toUpperCase() + "  ✦", right, H - 185);
+      if (verseNow) {   // 은혜 말씀 한 줄
+        ctx.fillStyle = F.ink; ctx.globalAlpha = .75;
+        ctx.textAlign = "right"; ctx.font = "600 26px Inter, 'Noto Sans KR', sans-serif";
+        const refW = ctx.measureText(verseNow.ref).width;
+        ctx.fillText(verseNow.ref, right, H - 100);
+        // 말씀이 길면 한 줄에 들어갈 때까지 글자를 줄임
+        const line = "“" + verseNow.text + "”", room = right - left - refW - 30;
+        let size = 32; ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`;
+        while (ctx.measureText(line).width > room && size > 18) { size--; ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`; }
+        ctx.textAlign = "left"; ctx.fillText(line, left, H - 100); ctx.globalAlpha = 1;
+      }
       // 오른쪽 여백 세로 글씨
       ctx.save(); ctx.translate(W - 34, C.slots[0].y); ctx.rotate(Math.PI / 2);
-      ctx.textAlign = "left"; ctx.fillStyle = "#b5b5b5"; ctx.font = "600 22px Inter, sans-serif";
+      ctx.textAlign = "left"; ctx.fillStyle = F.side; ctx.font = "600 22px Inter, sans-serif";
       ctx.fillText("KEEP THE GRACE ALIVE", 0, 0); ctx.restore();
     }
     return c;
@@ -520,6 +630,7 @@
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
   }
   async function finish() {
+    pickVerse();
     await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
@@ -612,7 +723,10 @@
     if (view !== "done") stopIdle();
   }
   function reset() { shots.fill(null); uploaded = false; renderThumbs(); show("idle"); }
-  function showHome(on) { $("home").hidden = !on; if (on) { reset(); } }
+  function showHome(on) {
+    $("home").hidden = !on;
+    if (on) { reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; renderChips(); previewLook(); }
+  }
   function goHome() { if (!busy) showHome(true); }
 
   // ---- 이벤트 ----
@@ -649,7 +763,7 @@
   // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
   function syncGear() { $("gear").hidden = !!S.eventCode; }
   async function openSettings() {
-    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setMono").checked = !!S.mono;
+    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror;
     $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
     const sel = $("camSel"); sel.innerHTML = "";
     try {
@@ -671,7 +785,7 @@
     const camChanged = $("camSel").value && $("camSel").value !== S.deviceId;
     S = Object.assign(S, {
       countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
-      mirror: $("setMirror").checked, mono: $("setMono").checked, autoSave: $("setAutoSave").checked,
+      mirror: $("setMirror").checked, autoSave: $("setAutoSave").checked,
       uploadUrl: $("setUrl").value.trim(), eventCode: $("setCode").value.trim(), deviceId: $("camSel").value || S.deviceId,
     });
     store.set(S); $("secs").textContent = S.countdown; syncGear();
@@ -680,7 +794,7 @@
   });
 
   $("secs").textContent = S.countdown;
-  syncGear(); renderThumbs(); show("idle"); startCamera();
+  syncGear(); renderThumbs(); renderChips(); previewLook(); show("idle"); startCamera();
   // 촬영 화면에서 아무것도 안 하면 홈으로 (2분)
   let readyTimer = null;
   const armReady = () => { clearTimeout(readyTimer); readyTimer = setTimeout(() => { if (!$("idleView").hidden && $("home").hidden && !$("settings").open) goHome(); }, 120000); };
