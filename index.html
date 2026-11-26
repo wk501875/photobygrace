@@ -148,8 +148,19 @@
   .pose .t { font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
 
   /* ---------- 결과: 카메라를 접고 전체 폭 — 사진 | QR | 다시 찍기·다음 ---------- */
-  .app.done { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
-  .app.done .stage { display: none; }
+  .app.done, .app.select { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
+  .app.done .stage, .app.select .stage { display: none; }
+  /* 고르기: 미리보기 | 찍은 사진들 */
+  #selectView { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: stretch; }
+  .sel-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+  .sel-side h2 { margin: 6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+  .takes { display: grid; grid-template-columns: repeat(var(--tc, 3), minmax(0, 1fr)); gap: 18px; align-content: start; overflow: auto; min-height: 0; padding: 6px; }
+  .take { position: relative; border: 0; padding: 0; border-radius: 14px; overflow: hidden; aspect-ratio: var(--ratio, 1.5); background: var(--soft) center / cover no-repeat; cursor: pointer; }
+  .take[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--ink); }
+  .take[aria-pressed="false"] { opacity: .55; }
+  .take b { position: absolute; top: 8px; left: 8px; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center;
+            background: var(--ink); color: #fff; font-family: var(--latin); font-size: 14px; font-weight: 600; }
+  .take[aria-pressed="false"] b { background: rgba(255,255,255,.9); color: var(--ink); }
   #doneView { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 380px); gap: 24px; align-items: stretch; }
   .strip { height: 100%; max-height: calc(100dvh - 230px); width: auto; max-width: min(100%, 34vw); object-fit: contain; justify-self: center;
            box-shadow: 0 1px 0 var(--line), 0 24px 40px -24px rgba(0,0,0,.35); }
@@ -260,7 +271,10 @@
     .app.shooting .panel { display: flex; }
     .stage { aspect-ratio: var(--ratio, 1.5); max-height: 48vh; width: 100%; }
     .topline { display: none; }
-    .app.done { grid-template-rows: minmax(0, 1fr); }
+    .app.done, .app.select { grid-template-rows: minmax(0, 1fr); }
+    #selectView { grid-template-columns: minmax(0, 180px) minmax(0, 1fr); gap: 18px; }
+    #selPreview { align-self: start; }
+    .takes { --tc: 2; }
     .brand h1 { font-size: 52px; }
     .panel { gap: 20px; }
     #idleView .guide { display: none; }
@@ -369,6 +383,18 @@
     </div>
 
     <!-- 결과 -->
+    <!-- 여러 장 중 고르기 -->
+    <div class="view" id="selectView" hidden>
+      <img id="selPreview" class="strip" alt="고른 사진으로 만든 미리보기">
+      <div class="sel-side">
+        <div><span class="label" id="selLabel">Pick 4 of 6</span><h2 id="selTitle">마음에 드는 사진을 골라 주세요</h2>
+          <p class="hint" id="selHint">누른 순서대로 프레임에 들어가요. 다시 누르면 빠져요.</p></div>
+        <div class="takes" id="takes" role="group" aria-label="찍은 사진"></div>
+        <button class="cta" id="selDone" type="button">이 사진으로 완성</button>
+        <div class="bye" id="selBye"></div>
+      </div>
+    </div>
+
     <div class="view" id="doneView" hidden>
       <img id="resultImg" class="strip" alt="완성된 네컷 사진">
       <div class="qrcard">
@@ -405,6 +431,7 @@
     <label>카메라 <select id="camSel"></select></label>
     <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15" inputmode="numeric"></label>
     <label class="check"><input id="setMirror" type="checkbox"> 좌우 반전 (셀카처럼)</label>
+    <label class="check"><input id="setPick" type="checkbox"> 여러 장 찍고 마음에 드는 컷 고르기</label>
     <label class="check"><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 저장 (백업)</label>
     <label>업로드 주소 (비워 두면 기본값) <input id="setUrl" type="text" placeholder="/api/upload"></label>
     <p class="hint">행사 코드를 넣으면 "설정" 버튼이 사라져요. 다시 열려면 화면 오른쪽 위 모서리를 2초 동안 길게 누르세요.</p>
@@ -439,7 +466,7 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, pickMore: C.pickMore !== false, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
 
   $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
@@ -507,6 +534,7 @@
     ctx.fillStyle = g; ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.font = "700 150px 'Noto Sans KR', sans-serif"; ctx.fillText("샘플 " + (i + 1), c.width / 2, c.height / 2);
+    c.thumb = thumbOf(c);
     return c;
   }
   function cropToShot(img, i = 0) {
@@ -532,7 +560,16 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawStickers(ctx, c.width, c.height);
     applyLook(c, look);
+    c.thumb = thumbOf(c);
     return c;
+  }
+
+  // 고르기 화면·칸 미리보기용 작은 이미지
+  function thumbOf(c) {
+    const t = document.createElement("canvas"), sc = 420 / c.width;
+    t.width = 420; t.height = Math.round(c.height * sc);
+    t.getContext("2d").drawImage(c, 0, 0, t.width, t.height);
+    return t.toDataURL("image/jpeg", .75);
   }
 
   // ---- 필터 ----
@@ -651,7 +688,7 @@
     shots = new Array(n).fill(null);
     document.documentElement.style.setProperty("--ratio", slotRatio().toFixed(4));
     document.documentElement.style.setProperty("--n", n);
-    $("nWord").textContent = KWORD[n] || n;
+    $("nWord").textContent = KWORD[totalTakes()] || totalTakes();
     $("cutLabel").textContent = "Photo Booth ✦ 01—" + two(n);
     renderThumbs();
   }
@@ -735,25 +772,100 @@
     ring.classList.toggle("ready", !!ready);
     ring.classList.remove("tick"); void ring.offsetWidth; if (!ready) ring.classList.add("tick");
   }
-  async function takeOne(i) {
+  // into: 찍은 사진을 넣을 배열(shots 또는 takes), total: 이번에 찍는 전체 장수
+  async function takeOne(i, into = shots, total = N()) {
     liveIndex = i; renderThumbs();
-    $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/" + two(N()); $("chipPose").textContent = poseOf(i);
-    $("poseNo").textContent = "Cut " + two(i + 1) + " / " + two(N()); $("poseText").textContent = poseOf(i);
+    $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/" + two(total); $("chipPose").textContent = poseOf(i);
+    $("poseNo").textContent = "Cut " + two(i + 1) + " / " + two(total); $("poseText").textContent = poseOf(i);
     showRing("준비!", true); await sleep(900);
     for (let s = S.countdown; s > 0; s--) { showRing(s); beep(660, 0.08); await sleep(1000); }
     $("count").hidden = true;
     beep(990, 0.15);
-    shots[i] = grab(i);
+    into[i] = grab(Math.min(i, N() - 1));
     const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
     liveIndex = -1; renderThumbs();
     await sleep(800);
   }
+  // 한 컷 다시 찍기 (결과 화면에서)
   async function runSession(indices) {
     if (busy) return;
-    busy = true; show("shoot");
+    busy = true; liveSrc = "shots"; show("shoot");
     try { for (const i of indices) await takeOne(i); }
     finally { $("chip").hidden = true; $("count").hidden = true; busy = false; liveIndex = -1; }
     if (shots.every(Boolean)) finish(); else show("idle");
+  }
+
+  // ---- 여러 장 찍고 고르기 ----
+  // 레이아웃 컷 수(N)보다 extraShots장 더 찍고, 그중 N장을 골라 프레임에 넣음
+  let takes = [], picks = [], liveSrc = "shots";
+  const totalTakes = () => N() + (S.pickMore ? Math.max(0, C.extraShots ?? 2) : 0);
+  async function runTakes() {
+    if (busy) return;
+    const total = totalTakes();
+    takes = new Array(total).fill(null);
+    busy = true; liveSrc = "takes"; show("shoot");
+    try { for (let i = 0; i < total; i++) await takeOne(i, takes, total); }
+    finally { $("chip").hidden = true; $("count").hidden = true; busy = false; liveIndex = -1; }
+    if (!takes.every(Boolean)) { liveSrc = "shots"; show("idle"); return; }
+    if (total === N()) { shots = takes.slice(); liveSrc = "shots"; finish(); return; }
+    picks = takes.slice(0, N()).map((_, i) => i);   // 처음 N장을 미리 골라 둠
+    pickVerse();
+    showSelect();
+  }
+  function showSelect() {
+    liveSrc = "shots"; show("select");
+    const box = $("takes"); box.innerHTML = "";
+    takes.forEach((t, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "take";
+      b.style.backgroundImage = "url(" + t.thumb + ")";
+      b.appendChild(document.createElement("b"));
+      b.onclick = () => {
+        const at = picks.indexOf(i);
+        if (at >= 0) picks.splice(at, 1); else if (picks.length < N()) picks.push(i); else { picks.shift(); picks.push(i); }
+        updateSelect(); bumpSelIdle();
+      };
+      box.appendChild(b);
+    });
+    const portrait = matchMedia("(max-width: 900px), (orientation: portrait)").matches;
+    $("takes").style.setProperty("--tc", portrait || takes.length <= 4 ? 2 : 3);
+    updateSelect(); bumpSelIdle();
+  }
+  function updateSelect() {
+    const n = N();
+    [...$("takes").children].forEach((b, i) => {
+      const at = picks.indexOf(i);
+      b.setAttribute("aria-pressed", String(at >= 0));
+      b.querySelector("b").textContent = at >= 0 ? String(at + 1) : two(i + 1);
+      b.setAttribute("aria-label", (i + 1) + "번째 사진" + (at >= 0 ? ", " + (at + 1) + "번 칸에 들어감" : ""));
+    });
+    $("selLabel").textContent = "Pick " + n + " of " + takes.length;
+    $("selTitle").textContent = picks.length === n ? "이대로 완성할까요?" : "사진 " + (n - picks.length) + "장을 더 골라 주세요";
+    $("selDone").disabled = picks.length !== n;
+    // 미리보기: 고른 사진으로 프레임을 작게 그려 봄
+    shots = new Array(n).fill(null).map((_, k) => picks[k] != null ? takes[picks[k]] : null);
+    const full = compose(), sm = document.createElement("canvas"), sc = 1000 / Math.max(full.width, full.height);
+    sm.width = Math.round(full.width * sc); sm.height = Math.round(full.height * sc);
+    sm.getContext("2d").drawImage(full, 0, 0, sm.width, sm.height);
+    $("selPreview").src = sm.toDataURL("image/jpeg", .8);
+  }
+  // 고르는 화면에서 오래 아무것도 안 하면 고른 그대로 완성 (사진을 잃지 않게)
+  let selTimer = null, selLeft = 0;
+  function stopSelIdle() { clearInterval(selTimer); selTimer = null; $("selBye").textContent = ""; }
+  function bumpSelIdle() {
+    stopSelIdle(); selLeft = 60;
+    selTimer = setInterval(() => {
+      if ($("selectView").hidden) { stopSelIdle(); return; }
+      selLeft--;
+      if (selLeft <= 20) $("selBye").textContent = selLeft + "초 뒤 지금 고른 사진으로 완성돼요";
+      if (selLeft <= 0) { stopSelIdle(); completeSelect(true); }
+    }, 1000);
+  }
+  function completeSelect(auto) {
+    const n = N();
+    if (picks.length < n) for (let i = 0; i < takes.length && picks.length < n; i++) if (!picks.includes(i)) picks.push(i);
+    if (!auto && picks.length !== n) return;
+    shots = picks.slice(0, n).map(i => takes[i]);
+    stopSelIdle(); finish();
   }
 
   // ---- 프레임 합성 ----
@@ -827,7 +939,7 @@
     return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
   }
   async function finish() {
-    pickVerse();
+    if (!verseNow) pickVerse();
     await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
@@ -901,11 +1013,13 @@
   function renderThumbs() {
     for (const id of ["thumbs", "thumbsLive", "thumbs2"]) {
       const box = $(id); box.innerHTML = "";
-      shots.forEach((s, i) => {
+      const src = id === "thumbsLive" && liveSrc === "takes" ? takes : shots;
+      box.style.setProperty("--n", src.length);
+      src.forEach((s, i) => {
         const b = document.createElement("button");
         b.type = "button"; b.className = "slot"; b.textContent = two(i + 1);
         b.setAttribute("aria-label", (i + 1) + "번째 컷" + (s ? (id === "thumbs2" ? " 다시 찍기" : " 촬영됨") : ""));
-        if (s) { b.classList.add("filled"); b.style.backgroundImage = "url(" + s.toDataURL("image/jpeg", 0.5) + ")"; }
+        if (s) { b.classList.add("filled"); b.style.backgroundImage = "url(" + (s.thumb || s.toDataURL("image/jpeg", 0.5)) + ")"; }
         if (i === liveIndex) b.classList.add("now");
         if (id === "thumbs2" && s) { b.classList.add("retake"); b.onclick = () => { if (!busy) runSession([i]); }; }
         else b.tabIndex = -1;
@@ -915,11 +1029,14 @@
   }
   function show(view) {
     $("idleView").hidden = view !== "idle"; $("shootView").hidden = view !== "shoot"; $("doneView").hidden = view !== "done";
+    $("selectView").hidden = view !== "select";
     $("app").classList.toggle("done", view === "done");
+    $("app").classList.toggle("select", view === "select");
+    if (view !== "select") stopSelIdle();
     $("app").classList.toggle("shooting", view === "shoot");
     if (view !== "done") stopIdle();
   }
-  function reset() { shots = new Array(N()).fill(null); uploaded = false; renderThumbs(); show("idle"); }
+  function reset() { shots = new Array(N()).fill(null); takes = []; picks = []; verseNow = null; liveSrc = "shots"; uploaded = false; renderThumbs(); show("idle"); }
   function showHome(on) {
     $("home").hidden = !on;
     if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
@@ -928,7 +1045,8 @@
 
   // ---- 이벤트 ----
   const allCuts = () => Array.from({ length: N() }, (_, i) => i);
-  $("startBtn").onclick = () => { unlockAudio(); reset(); runSession(allCuts()); };
+  $("startBtn").onclick = () => { unlockAudio(); reset(); runTakes(); };
+  $("selDone").onclick = () => completeSelect(false);
   $("nextBtn").onclick = () => { placed = []; selIdx = -1; renderStickers(); reset(); };
   $("home").onclick = () => { unlockAudio(); showHome(false); showPick(true); };
   $("backBtn").onclick = () => { if (!busy) showPick(true); };
@@ -957,6 +1075,7 @@
       e.preventDefault();
       if (!$("home").hidden) { $("home").click(); return; }
       if (!$("pick").hidden) { $("pickNext").click(); return; }
+      if (!$("selectView").hidden) { $("selDone").click(); return; }
       if (!$("idleView").hidden) $("startBtn").click(); else if (!$("doneView").hidden) $("nextBtn").click();
     }
   });
@@ -964,7 +1083,7 @@
   // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
   function syncGear() { $("gear").hidden = !!S.eventCode; }
   async function openSettings() {
-    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror;
+    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setPick").checked = !!S.pickMore;
     $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
     const sel = $("camSel"); sel.innerHTML = "";
     try {
@@ -986,10 +1105,10 @@
     const camChanged = $("camSel").value && $("camSel").value !== S.deviceId;
     S = Object.assign(S, {
       countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
-      mirror: $("setMirror").checked, autoSave: $("setAutoSave").checked,
+      mirror: $("setMirror").checked, pickMore: $("setPick").checked, autoSave: $("setAutoSave").checked,
       uploadUrl: $("setUrl").value.trim(), eventCode: $("setCode").value.trim(), deviceId: $("camSel").value || S.deviceId,
     });
-    store.set(S); $("secs").textContent = S.countdown; syncGear();
+    store.set(S); $("secs").textContent = S.countdown; $("nWord").textContent = KWORD[totalTakes()] || totalTakes(); syncGear();
     video.classList.toggle("mirror", !!S.mirror);
     if (camChanged) startCamera();
   });
