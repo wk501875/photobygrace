@@ -94,6 +94,11 @@ R2 → `photobygrace-photos` → **Settings** → **Object lifecycle rules** →
   - 그림은 `stickers/` 폴더의 투명 이미지(WebP/PNG)이고, 목록·이름·처음 크기와 위치는 `config.js`의 `stickers`에서 바꿔요.
   - 새 스티커를 넣으려면 투명 배경 이미지를 `stickers/`에 넣고 `stickers` 목록에 한 줄 추가하세요 (`src`로 파일 경로 지정 가능).
 
+### 홈 화면 배경 영상
+
+- 홈 화면 뒤에 `media/home-loop.mp4`(8초, 소리 없음)가 반복 재생돼요. 홈 화면일 때만 재생되고 촬영 중에는 멈춰요.
+- 바꾸려면 같은 이름으로 덮어쓰거나 `config.js`의 `homeVideo`, `homePoster`(첫 장면 이미지)를 고치세요. 빼려면 `homeVideo: ""` → 예전 흑백 홈 화면.
+
 ### 여러 장 찍고 고르기
 
 - 컷 수보다 2장 더 찍고(세로 4컷·2×2면 6장, 큰 2컷 4장, 단체 1컷 3장) 마음에 드는 컷을 골라 프레임에 넣어요.

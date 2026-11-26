@@ -28,6 +28,10 @@ window.BOOTH_CONFIG = {
   styles: ["white", "black", "pastel", "minimal", "passport", "night", "holo"],
   frame: "pastel",   // 처음 선택돼 있는 디자인
 
+  // 홈 화면 배경 루프 영상 (소리 없이 반복). 빼려면 "" → 예전 흑백 홈 화면
+  homeVideo: "media/home-loop.mp4",
+  homePoster: "media/home-loop.jpg",
+
   // 컷마다 화면에 보여 줄 포즈 안내
   poses: ["활짝 웃어요", "손가락 하트", "브이!", "자유 포즈"],
 
