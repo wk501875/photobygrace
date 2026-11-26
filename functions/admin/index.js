@@ -1,36 +1,35 @@
 // GET /admin — 사진 관리 페이지 (목록, 저장, 삭제)
-import { html, TITLE, RAINBOW_SVG } from "../_lib.js";
+import { html, TITLE, FONTS } from "../_lib.js";
 
 export async function onRequestGet() {
   return html(`<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${TITLE} 사진 관리</title>
+${FONTS}
 <style>
-  :root { color-scheme: dark; --night:#0e1324; --panel:#161d35; --cell:#212a4a; --fg:#f3f1ea; --muted:#a3abc7; --line:rgba(255,255,255,.1); --danger:#ef5350; }
+  :root { color-scheme: light; --bg:#ececec; --card:#fff; --soft:#f3f3f3; --line:#e1e1e1; --ink:#111; --mute:#8a8a8a; --danger:#c62828; }
   * { box-sizing:border-box; }
-  body { margin:0; background: radial-gradient(120% 60% at 80% -10%, #26305a 0%, transparent 60%), var(--night); color:var(--fg);
-         font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; min-height:100dvh; }
-  header { max-width:1200px; margin:0 auto; padding:24px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
-           display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  header .logo { width:52px; height:30px; }
-  h1 { margin:0; font-size:20px; font-weight:600; }
-  .muted { color:var(--muted); font-size:14px; font-variant-numeric:tabular-nums; }
+  body { margin:0; background:var(--bg); color:var(--ink); min-height:100dvh; font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  header { max-width:1200px; margin:0 auto; padding:28px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+           display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+  .label { font-family:"Inter",system-ui,sans-serif; font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  h1 { margin:6px 0 0; font-family:"Anton","Arial Narrow",sans-serif; font-weight:400; font-size:40px; line-height:.95; text-transform:uppercase; }
+  .muted { color:var(--mute); font-size:14px; font-variant-numeric:tabular-nums; margin-top:8px; }
   .grow { flex:1; min-width:0; }
-  .refresh { font:inherit; font-size:14px; padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:var(--panel); color:var(--fg); cursor:pointer; }
-  .grid { max-width:1200px; margin:0 auto; padding:12px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
+  .refresh { font:inherit; font-size:14px; font-weight:500; padding:10px 18px; border-radius:999px; border:0; background:var(--ink); color:#fff; cursor:pointer; }
+  .grid { max-width:1200px; margin:0 auto; padding:16px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
           display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
-  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:8px; display:flex; flex-direction:column; gap:8px; }
-  .card img { width:100%; aspect-ratio:1/3; object-fit:cover; border-radius:8px; background:var(--cell); }
-  .meta { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .card { background:var(--card); border-radius:18px; padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .card img { width:100%; aspect-ratio:1/3; object-fit:cover; background:var(--soft); }
+  .meta { font-family:"Inter",sans-serif; font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
   .row { display:flex; gap:6px; }
-  .row a, .row button { flex:1; font:inherit; font-size:13px; padding:8px 6px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--fg); text-align:center; text-decoration:none; cursor:pointer; }
+  .row a, .row button { flex:1; font:inherit; font-size:13px; padding:8px 6px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink); text-align:center; text-decoration:none; cursor:pointer; }
   .row button.armed { background:var(--danger); border-color:var(--danger); color:#fff; }
-  .empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:60px 0; }
-  a:focus-visible, button:focus-visible { outline:3px solid #42a5f5; outline-offset:2px; }
+  .empty { grid-column:1/-1; text-align:center; color:var(--mute); padding:60px 0; }
+  a:focus-visible, button:focus-visible { outline:3px solid var(--ink); outline-offset:2px; }
 </style></head><body>
 <header>
-  ${RAINBOW_SVG}
-  <div class="grow"><h1>${TITLE} 사진 관리</h1><div class="muted" id="sum">불러오는 중…</div></div>
+  <div class="grow"><span class="label">Photo Booth ✦ Admin</span><h1>${TITLE}</h1><div class="muted" id="sum">불러오는 중…</div></div>
   <button class="refresh" id="refresh" type="button">새로고침</button>
 </header>
 <div class="grid" id="grid"></div>

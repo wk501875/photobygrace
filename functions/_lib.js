@@ -31,43 +31,39 @@ export function safeEqual(a, b) {
   return d === 0;
 }
 
-// 무지개 로고 (촬영 화면과 같은 모양)
-export const RAINBOW_SVG = `<svg class="logo" viewBox="0 0 64 36" aria-hidden="true"><g fill="none" stroke-width="3.2" stroke-linecap="round">
-<path d="M4 34a28 28 0 0 1 56 0" stroke="#ef5350"/><path d="M8 34a24 24 0 0 1 48 0" stroke="#ffa726"/>
-<path d="M12 34a20 20 0 0 1 40 0" stroke="#ffee58"/><path d="M16 34a16 16 0 0 1 32 0" stroke="#66bb6a"/>
-<path d="M20 34a12 12 0 0 1 24 0" stroke="#42a5f5"/><path d="M24 34a8 8 0 0 1 16 0" stroke="#5c6bc0"/>
-<path d="M28 34a4 4 0 0 1 8 0" stroke="#ab47bc"/></g></svg>`;
+// 휴대폰용 페이지 틀 — 촬영 화면과 같은 흑백 에디토리얼
+export const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">`;
 
-// 휴대폰용 페이지 틀 — 촬영 화면과 같은 밤하늘 + 무지개
 export function page(title, inner) {
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0e1324">
+<meta name="theme-color" content="#ececec">
 <title>${title}</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Caveat:wght@700&display=swap">
+${FONTS}
 <style>
-  :root { color-scheme: dark; --night:#0e1324; --night-2:#161d35; --star:#f3f1ea; --mist:#a3abc7; --line:rgba(255,255,255,.1);
-          --rainbow: linear-gradient(90deg,#ef5350,#ffa726,#ffee58,#66bb6a,#42a5f5,#5c6bc0,#ab47bc); }
+  :root { color-scheme: light; --bg:#ececec; --card:#fff; --soft:#f3f3f3; --line:#e1e1e1; --ink:#111; --mute:#8a8a8a; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100dvh; color:var(--star);
-         background: radial-gradient(120% 60% at 80% -10%, #26305a 0%, transparent 60%), var(--night);
-         font-family:"Gowun Dodum",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
-  main { max-width:480px; margin:0 auto; text-align:center;
-         padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-  .logo { width:64px; height:36px; display:block; margin:0 auto 6px; }
-  h1 { font-family:"Caveat",cursive; font-weight:700; font-size:46px; margin:0; line-height:1; }
-  .sub { color:var(--mist); margin:6px 0 0; font-size:15px; letter-spacing:.5px; }
-  .photo { display:block; height:min(50dvh,900px); width:auto; max-width:88%; margin:22px auto 24px; border-radius:8px;
-           box-shadow:0 18px 40px -16px rgba(0,0,0,.9), 0 0 0 1px var(--line); -webkit-touch-callout: default; }
-  .btn { display:block; width:100%; font:inherit; font-size:20px; padding:18px; border-radius:20px; text-decoration:none; color:var(--night);
-         border:4px solid transparent; background: linear-gradient(var(--star),var(--star)) padding-box, var(--rainbow) border-box; }
-  .btn:active { transform: scale(.98); }
-  .btn:focus-visible { outline:3px solid #42a5f5; outline-offset:3px; }
-  .tip { color:var(--mist); font-size:14px; line-height:1.7; margin:16px 0 0; }
-  .verse { margin:34px 0 0; padding-top:18px; border-top:1px solid var(--line); color:var(--mist); font-size:14px; line-height:1.6; }
-  .verse b { display:block; color:var(--star); font-weight:400; font-size:16px; }
-  .empty { margin-top:40px; color:var(--mist); line-height:1.7; }
-</style></head><body><main>${RAINBOW_SVG}${inner}
-<p class="verse"><b>여호와께서 여기까지 우리를 도우셨다</b>사무엘상 7:12</p>
+  body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink); letter-spacing:-0.01em;
+         font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  main { max-width:480px; margin:0 auto;
+         padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .card { background:var(--card); border-radius:28px; padding:24px 22px 26px; }
+  .label { font-family:"Inter",system-ui,sans-serif; font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
+  .top { display:flex; justify-content:space-between; }
+  h1 { font-family:"Anton","Arial Narrow",sans-serif; font-weight:400; font-size:52px; line-height:.9; margin:14px 0 0; text-transform:uppercase; }
+  .sub { color:var(--mute); margin:8px 0 0; font-size:14px; }
+  .photo { display:block; height:min(52dvh,880px); width:auto; max-width:100%; margin:22px auto; box-shadow:0 1px 0 var(--line), 0 20px 36px -22px rgba(0,0,0,.4); -webkit-touch-callout: default; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:19px; border-radius:999px;
+         text-decoration:none; color:#fff; background:var(--ink); }
+  .btn::after { content:"↓"; font-family:"Inter",sans-serif; font-weight:500; }
+  .btn:active { transform:scale(.98); }
+  .btn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }
+  .tip { color:var(--mute); font-size:13px; line-height:1.7; margin:14px 0 0; text-align:center; }
+  .verse { margin:18px 4px 0; display:flex; justify-content:space-between; gap:12px; align-items:baseline; color:var(--mute); font-size:13px; }
+  .verse b { color:var(--ink); font-weight:500; }
+  .empty { margin:40px 0 10px; color:var(--mute); line-height:1.7; }
+</style></head><body><main>
+<div class="card"><div class="top"><span class="label">Photo Booth ✦</span><span class="label">Keep the grace alive</span></div>${inner}</div>
+<p class="verse"><b>여호와께서 여기까지 우리를 도우셨다</b><span>삼상 7:12</span></p>
 </main></body></html>`;
 }

@@ -30,5 +30,6 @@ window.BOOTH_CONFIG = {
 
   countdown: 5,       // 한 컷당 카운트다운 (초)
   mirror: true,       // 셀카처럼 좌우 반전
+  mono: false,        // 흑백 사진 (태블릿 설정에서도 바꿀 수 있어요)
   jpegQuality: 0.9,
 };
