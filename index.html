@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="네컷">
 <meta name="theme-color" content="#ececec">
 <link rel="apple-touch-icon" href="icon-512.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Caveat:wght@700&family=Gowun+Dodum&family=Fraunces:ital,opsz,wght@1,9..144,500&family=Gaegu:wght@700&family=Space+Mono:wght@400;700&family=DM+Serif+Display:ital@1&family=Gowun+Batang:wght@400;700&family=Bagel+Fat+One&display=swap">
 <style>
   /* 포토부스 키오스크 — 흑백 에디토리얼. 밝은 회색 바탕, 흰 카드, 검은 알약 버튼, 좁고 굵은 영문 제목.
      카메라(왼쪽/위) + 안내 패널(오른쪽/아래). 조명 아래 밝은 공간에 두는 기기라 밝은 화면 한 가지로 디자인. */
@@ -151,19 +151,21 @@
   .app.done, .app.select { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
   .app.done .stage, .app.select .stage { display: none; }
   /* 고르기: 미리보기 | 찍은 사진들 */
-  #selectView { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: stretch; }
+  #selectView { display: grid; grid-template-columns: var(--pvw, 300px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 28px; align-items: stretch; }
   .sel-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
   .sel-side h2 { margin: 6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
-  .takes { display: grid; grid-template-columns: repeat(var(--tc, 3), minmax(0, 1fr)); gap: 18px; align-content: start; overflow: auto; min-height: 0; padding: 6px; }
-  .take { position: relative; border: 0; padding: 0; border-radius: 14px; overflow: hidden; aspect-ratio: var(--ratio, 1.5); background: var(--soft) center / cover no-repeat; cursor: pointer; }
+  /* 사진 칸 크기는 JS(fitTakes)가 남는 공간에 맞춰 계산 → 겹치거나 작아지지 않음 */
+  .takes { flex: 1 1 auto; min-height: 0; display: grid; gap: 16px; align-content: center; justify-content: center; overflow: hidden; padding: 6px; }
+  .take { position: relative; border: 0; padding: 0; border-radius: 12px; overflow: hidden; background: var(--soft) center / cover no-repeat; cursor: pointer; }
   .take[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--ink); }
   .take[aria-pressed="false"] { opacity: .55; }
   .take b { position: absolute; top: 8px; left: 8px; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center;
             background: var(--ink); color: #fff; font-family: var(--latin); font-size: 14px; font-weight: 600; }
   .take[aria-pressed="false"] b { background: rgba(255,255,255,.9); color: var(--ink); }
-  #doneView { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 380px); gap: 24px; align-items: stretch; }
-  .strip { height: 100%; max-height: calc(100dvh - 230px); width: auto; max-width: min(100%, 34vw); object-fit: contain; justify-self: center;
-           box-shadow: 0 1px 0 var(--line), 0 24px 40px -24px rgba(0,0,0,.35); }
+  #doneView { display: grid; grid-template-columns: var(--pvw, 300px) minmax(0, 1fr) minmax(0, 340px); grid-template-rows: minmax(0, 1fr); gap: 24px; align-items: stretch; }
+  /* 사진 미리보기: 칸 안에서 비율 그대로 최대 크기 (늘어나지 않음) */
+  .pv { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .pv img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; box-shadow: 0 1px 0 var(--line), 0 24px 40px -24px rgba(0,0,0,.35); }
   .qrcard { background: var(--soft); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; min-width: 0; }
   .qrcard h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
   .qrframe { position: relative; width: 100%; max-width: 340px; aspect-ratio: 1; padding: 22px; --b: var(--ink); --l: 34px; --t: 3px;
@@ -230,7 +232,10 @@
           padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
   .pick-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
   .pick-head h2 { margin: 8px 0 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
-  .cards { display: grid; grid-template-columns: repeat(var(--cards, 4), minmax(0, 1fr)); gap: 18px; min-height: 0; }
+  .cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(210px, 1fr); gap: 16px; min-height: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding-bottom: 6px; }
+  .cards .card { scroll-snap-align: start; }
+  .fbox:has(.fimg) { position: relative; }
+  .fimg { position: absolute; inset: 0; margin: auto; display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; box-shadow: 0 16px 30px -20px rgba(0,0,0,.4), 0 0 0 1px rgba(0,0,0,.06); }
   .card { border: 0; background: var(--card); border-radius: 26px; padding: 18px 18px 16px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px;
           cursor: pointer; min-height: 0; text-align: left; transition: transform .15s ease; }
   .card[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--ink); }
@@ -241,11 +246,13 @@
   .fprev b { position: absolute; height: 5%; background: var(--fink); border-radius: 1px; }
   .fprev em { position: absolute; height: 2.4%; background: var(--fsub); border-radius: 1px; }
   .card-meta { display: flex; justify-content: space-between; align-items: baseline; }
-  .card-meta strong { font-size: 19px; font-weight: 700; }
+  .card-meta { gap: 8px; }
+  .card-meta strong { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .card-meta .label { flex: none; }
   .pick-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
   .pick-foot .cta { margin-top: 0; min-width: 320px; }
   @media (max-width: 900px), (orientation: portrait) {
-    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cards { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 340px; overflow-x: hidden; overflow-y: auto; }
     .pick-foot .cta { min-width: 0; flex: 1; }
   }
 
@@ -272,9 +279,8 @@
     .stage { aspect-ratio: var(--ratio, 1.5); max-height: 48vh; width: 100%; }
     .topline { display: none; }
     .app.done, .app.select { grid-template-rows: minmax(0, 1fr); }
-    #selectView { grid-template-columns: minmax(0, 180px) minmax(0, 1fr); gap: 18px; }
-    #selPreview { align-self: start; }
-    .takes { --tc: 2; }
+    #selectView { grid-template-columns: var(--pvw, 180px) minmax(0, 1fr); gap: 18px; }
+    #selectView.stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: var(--pvh, 240px) minmax(0, 1fr); }
     .brand h1 { font-size: 52px; }
     .panel { gap: 20px; }
     #idleView .guide { display: none; }
@@ -282,8 +288,7 @@
     #idleView .lead { display: none; }
     .chips { flex-wrap: nowrap; overflow-x: auto; }
     .lead { font-size: 28px; }
-    #doneView { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 20px; }
-    .strip { height: auto; width: 100%; max-height: none; }
+    #doneView { grid-template-columns: var(--pvw, 200px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 20px; }
     .side { grid-column: 1 / -1; }
     .side .steps { max-width: 440px; }
   }
@@ -385,7 +390,7 @@
     <!-- 결과 -->
     <!-- 여러 장 중 고르기 -->
     <div class="view" id="selectView" hidden>
-      <img id="selPreview" class="strip" alt="고른 사진으로 만든 미리보기">
+      <div class="pv"><img id="selPreview" alt="고른 사진으로 만든 미리보기"></div>
       <div class="sel-side">
         <div><span class="label" id="selLabel">Pick 4 of 6</span><h2 id="selTitle">마음에 드는 사진을 골라 주세요</h2>
           <p class="hint" id="selHint">누른 순서대로 프레임에 들어가요. 다시 누르면 빠져요.</p></div>
@@ -396,7 +401,7 @@
     </div>
 
     <div class="view" id="doneView" hidden>
-      <img id="resultImg" class="strip" alt="완성된 네컷 사진">
+      <div class="pv"><img id="resultImg" alt="완성된 네컷 사진"></div>
       <div class="qrcard">
         <span class="label">Scan to save</span>
         <h2 id="qrTitle">사진을 올리는 중이에요</h2>
@@ -441,6 +446,7 @@
 
 <script src="config.js"></script>
 <script src="vendor/qrcode.js"></script>
+<script src="frames.js"></script>
 <script>
 (() => {
   const C = Object.assign({ countdown: 5, mirror: true, jpegQuality: 0.9, poses: [], idleReset: 90 }, window.BOOTH_CONFIG || {});
@@ -451,6 +457,14 @@
   const LAYOUTS = {};
   for (const [k, v] of Object.entries(C.layouts && Object.keys(C.layouts).length ? C.layouts : DEFAULT_LAYOUTS)) {
     LAYOUTS[k] = { ...v, slots: v.slots.map(a => Array.isArray(a) ? { x: a[0], y: a[1], w: a[2], h: a[3] } : a) };
+  }
+  // 디자인 프레임(frames.js)을 앞에: config.designs 순서대로
+  {
+    const DS = window.FRAME_DESIGNS || {}, order = Array.isArray(C.designs) ? C.designs : Object.keys(DS);
+    const merged = {};
+    for (const k of order) if (DS[k]) merged[k] = { name: DS[k].name, w: DS[k].w, h: DS[k].h, slots: DS[k].slots, design: k };
+    for (const [k, v] of Object.entries(LAYOUTS)) { delete LAYOUTS[k]; merged[k] = merged[k] || v; }
+    Object.assign(LAYOUTS, merged);
   }
   // 예전 config의 slots/frameImage 는 세로 4컷에 적용
   if (Array.isArray(C.slots) && C.slots.length && LAYOUTS.strip4) LAYOUTS.strip4.slots = C.slots;
@@ -651,9 +665,21 @@
     };
     mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
     mk($("frameChips"), FRAMES, frame, (k) => { frame = k; renderChips(); renderCards(); }, true);
-    $("frameNow").textContent = "프레임: " + LAY().name + " · " + (FRAMES[frame] || FRAMES.white).name + " (" + N() + "컷)";
+    $("frameChips").hidden = !!LAY().design;   // 디자인 프레임은 색이 정해져 있음
+    $("frameNow").textContent = "프레임: " + LAY().name + (LAY().design ? "" : " · " + (FRAMES[frame] || FRAMES.white).name) + " (" + N() + "컷)";
   }
   // 프레임 고르기 카드: 칸 배치를 그대로 축소해서 보여 줌
+  const cardCache = {};
+  let fontsReady = false;
+  Promise.all(designFonts().map(f => document.fonts.load(f).catch(() => {}))).then(() => { fontsReady = true; for (const k in cardCache) delete cardCache[k]; if (!$("pick").hidden) renderCards(); });
+  function designCard(k) {   // 디자인 프레임 카드: 실제 결과와 똑같이 작게 그림
+    if (!cardCache[k]) {
+      const full = composeDesign(LAYOUTS[k], true), sm = document.createElement("canvas"), sc = 640 / full.height;
+      sm.width = Math.round(full.width * sc); sm.height = 640; sm.getContext("2d").drawImage(full, 0, 0, sm.width, sm.height);
+      cardCache[k] = sm.toDataURL("image/png");
+    }
+    return cardCache[k];
+  }
   function renderCards() {
     const box = $("layoutCards"), F = FRAMES[frame] || FRAMES.white;
     box.innerHTML = ""; box.style.setProperty("--cards", Object.keys(LAYOUTS).length);
@@ -665,7 +691,7 @@
       inner += `<b style="left:${pc(left, L.w)};top:${pc(L.h - A * .62, L.h)};width:${pc((right - left) * .55, L.w)};height:${pc(A * .2, L.h)}"></b>`;
       inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .36, L.h)};width:${pc((right - left) * .3, L.w)};height:${pc(A * .06, L.h)}"></em>`;
       inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .22, L.h)};width:${pc((right - left) * .7, L.w)};height:${pc(A * .05, L.h)}"></em>`;
-      bt.innerHTML = `<div class="fbox"><div class="fprev" style="--ar:${(L.w / L.h).toFixed(4)};--fbg:${F.bg};--fslot:${F.empty};--fink:${F.ink};--fsub:${F.sub}">${inner}</div></div>`
+      bt.innerHTML = (L.design ? `<div class="fbox"><img class="fimg" alt="" src="${designCard(k)}"></div>` : `<div class="fbox"><div class="fprev" style="--ar:${(L.w / L.h).toFixed(4)};--fbg:${F.bg};--fslot:${F.empty};--fink:${F.ink};--fsub:${F.sub}">${inner}</div></div>`)
         + `<div class="card-meta"><strong></strong><span class="label"></span></div>`;
       bt.querySelector("strong").textContent = L.name;
       bt.querySelector(".label").textContent = L.slots.length + (L.slots.length > 1 ? " cuts" : " cut");
@@ -812,6 +838,40 @@
     pickVerse();
     showSelect();
   }
+  // 결과·고르기 화면: 사진 미리보기 칸 너비를 레이아웃 비율에 맞춰 계산
+  const isPortrait = () => matchMedia("(max-width: 900px), (orientation: portrait)").matches;
+  function fitPreview(view) {
+    const el = $(view); if (el.hidden) return;
+    el.style.removeProperty("--pvw"); el.style.removeProperty("--pvh");
+    const ratio = LAY().w / LAY().h, port = isPortrait();
+    el.classList.toggle("stack", view === "selectView" && port && ratio > 1);
+    if (el.classList.contains("stack")) {   // 세로 화면 + 가로로 긴 사진: 미리보기를 위에
+      const r0 = el.getBoundingClientRect();
+      el.style.setProperty("--pvh", Math.round(Math.min(r0.width / ratio, r0.height * .38)) + "px"); return;
+    }
+    const r = el.getBoundingClientRect();
+    let h = r.height;
+    if (view === "doneView" && port) h = r.height - el.querySelector(".side").getBoundingClientRect().height - 20;
+    const cap = view === "doneView" ? (port ? .5 : .38) : (port ? .42 : .45);
+    el.style.setProperty("--pvw", Math.round(Math.max(120, Math.min(ratio * h, r.width * cap))) + "px");
+  }
+  // 고르기 화면: 남는 공간에 사진 칸이 가장 크게 들어가는 열 수를 찾음
+  function fitTakes() {
+    const box = $("takes"); if ($("selectView").hidden || !takes.length) return;
+    const r = box.getBoundingClientRect(), gap = 16, pad = 12, n = takes.length, a = slotRatio();
+    const W = r.width - pad, H = r.height - pad;
+    let best = { w: 0, cols: 1 };
+    for (let cols = 1; cols <= n; cols++) {
+      const rows = Math.ceil(n / cols);
+      const w = Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) * a);
+      if (w > best.w) best = { w, cols };
+    }
+    const w = Math.floor(best.w), h = Math.floor(best.w / a);
+    box.style.gridTemplateColumns = `repeat(${best.cols}, ${w}px)`;
+    for (const t of box.children) { t.style.width = w + "px"; t.style.height = h + "px"; }
+  }
+  window.addEventListener("resize", () => { fitPreview("doneView"); fitPreview("selectView"); fitTakes(); });
+
   function showSelect() {
     liveSrc = "shots"; show("select");
     const box = $("takes"); box.innerHTML = "";
@@ -826,9 +886,8 @@
       };
       box.appendChild(b);
     });
-    const portrait = matchMedia("(max-width: 900px), (orientation: portrait)").matches;
-    $("takes").style.setProperty("--tc", portrait || takes.length <= 4 ? 2 : 3);
     updateSelect(); bumpSelIdle();
+    requestAnimationFrame(() => { fitPreview("selectView"); fitTakes(); });
   }
   function updateSelect() {
     const n = N();
@@ -885,8 +944,25 @@
   // 사진마다 은혜 말씀 하나 (config.verses에서 랜덤)
   let verseNow = null;
   const pickVerse = () => { const v = Array.isArray(C.verses) ? C.verses : []; verseNow = C.verse === false || !v.length ? null : v[Math.floor(Math.random() * v.length)]; };
+  function composeDesign(L, preview) {
+    const D = window.FRAME_DESIGNS[L.design], c = document.createElement("canvas"); c.width = L.w; c.height = L.h;
+    const ctx = c.getContext("2d");
+    D.draw(ctx, "bg");
+    L.slots.forEach((s, i) => {
+      ctx.save();
+      if (s.rot) { ctx.translate(s.x + s.w / 2, s.y + s.h / 2); ctx.rotate(s.rot * Math.PI / 180); ctx.translate(-(s.x + s.w / 2), -(s.y + s.h / 2)); }
+      roundRect(ctx, s.x, s.y, s.w, s.h, s.r || 0); ctx.clip();
+      if (!preview && shots[i]) ctx.drawImage(shots[i], s.x, s.y, s.w, s.h);
+      else { ctx.fillStyle = D.empty; ctx.fillRect(s.x, s.y, s.w, s.h); }
+      ctx.restore();
+    });
+    D.draw(ctx, "fg");
+    return c;
+  }
+  function designFonts() { return Object.values(window.FRAME_DESIGNS || {}).flatMap(d => d.fonts); }
   function compose() {
     const L = LAY(), W = L.w, H = L.h, frameImg = frameImgs[layout];
+    if (L.design && !frameImg) return composeDesign(L);
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const ctx = c.getContext("2d");
     const F = FRAMES[frame] || FRAMES.white;
@@ -940,13 +1016,14 @@
   }
   async function finish() {
     if (!verseNow) pickVerse();
-    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
+    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'", ...designFonts()].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
     if (current) URL.revokeObjectURL(current.url);
     current = { blob, url: URL.createObjectURL(blob), name: "herebygrace-" + stamp() + ".jpg" };
     $("resultImg").src = current.url;
     renderThumbs(); show("done");
+    requestAnimationFrame(() => fitPreview("doneView"));
     if (S.autoSave && !window.claude) saveLocal();
     upload();
   }

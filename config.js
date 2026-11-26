@@ -10,8 +10,12 @@ window.BOOTH_CONFIG = {
   subtitle: "성도교제의 밤",
   footer: "2026. 12",
 
-  // 처음 선택돼 있는 레이아웃 (촬영 전 "프레임 고르기"에서 바꿀 수 있어요)
-  layout: "strip4",
+  // 처음 선택돼 있는 프레임 (촬영 전 "프레임 고르기"에서 바꿀 수 있어요)
+  layout: "pastel",
+
+  // 디자인 프레임 (frames.js): 고르기 화면 앞쪽에 이 순서로 나와요. 빼고 싶은 건 지우세요.
+  // pastel 파스텔 무지개, minimal 화이트 미니멀, passport 은혜 여권, night 성도교제의 밤, holo 홀로그램
+  designs: ["pastel", "minimal", "passport", "night", "holo"],
 
   // 레이아웃 목록. 빼고 싶은 건 지우면 화면에서도 사라져요.
   // w, h: 결과 사진 크기(px) / slots: 사진 칸 [x, y, 가로, 세로]. 칸 비율이 카메라 화면 비율이 돼요.
