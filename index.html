@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="네컷">
 <meta name="theme-color" content="#ececec">
 <link rel="apple-touch-icon" href="icon-512.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
   /* 포토부스 키오스크 — 흑백 에디토리얼. 밝은 회색 바탕, 흰 카드, 검은 알약 버튼, 좁고 굵은 영문 제목.
      카메라(왼쪽/위) + 안내 패널(오른쪽/아래). 조명 아래 밝은 공간에 두는 기기라 밝은 화면 한 가지로 디자인. */
@@ -53,7 +53,20 @@
   .lookfx.grace { opacity: 1; background:
       radial-gradient(70% 60% at 30% -5%, rgba(255,226,160,.55), transparent 65%),
       linear-gradient(118deg, transparent 18%, rgba(255,240,205,.30) 24%, transparent 31%, transparent 38%, rgba(255,240,205,.22) 44%, transparent 52%, transparent 60%, rgba(255,240,205,.16) 66%, transparent 73%); }
-  .stickerfx { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; pointer-events: none; transition: filter .3s ease; }
+  /* 스티커: 카메라 화면 위에서 끌어 옮김 */
+  .stk-layer { position: absolute; inset: 0; z-index: 2; transition: filter .3s ease; }
+  .stk { position: absolute; transform: translate(-50%, -50%); touch-action: none; cursor: grab; -webkit-user-drag: none; user-select: none; }
+  .stk.sel { outline: 2px dashed rgba(255,255,255,.95); outline-offset: 4px; }
+  .app.shooting .stk { pointer-events: none; }
+  .app.shooting .stk.sel { outline: 0; }
+  .tray { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scroll-snap-type: x proximity; }
+  .tray button { flex: none; width: 64px; height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); padding: 6px; cursor: pointer; scroll-snap-align: start; }
+  .tray button img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+  .tray button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); background: #fff; }
+  .stk-tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .stk-tools button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .stk-tools button:disabled { opacity: .35; }
+  .stk-tools .hint { margin-left: auto; }
   .lookfx.film { opacity: 1; mix-blend-mode: multiply; background: radial-gradient(90% 90% at 50% 50%, transparent 55%, rgba(60,40,20,.35)); }
   /* 네 모서리 브래킷 */
   .brackets { position: absolute; inset: 22px; z-index: 2; pointer-events: none; --b: rgba(255,255,255,.9); --l: 44px; --t: 3px;
@@ -252,6 +265,7 @@
     .panel { gap: 20px; }
     #idleView .guide { display: none; }
     #shootView .steps { max-width: min(400px, calc(var(--n, 4) * 110px)); }
+    #idleView .lead { display: none; }
     .chips { flex-wrap: nowrap; overflow-x: auto; }
     .lead { font-size: 28px; }
     #doneView { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 20px; }
@@ -299,7 +313,7 @@
 <div class="app" id="app">
   <section class="stage" aria-label="카메라 화면"><div class="cam">
     <video id="video" autoplay playsinline muted class="mirror"></video>
-    <canvas class="stickerfx" id="stickerfx" aria-hidden="true"></canvas>
+    <div class="stk-layer" id="stkLayer"></div>
     <div class="lookfx" id="lookfx" aria-hidden="true"></div>
     <div class="brackets" aria-hidden="true"></div>
     <div class="chip" id="chip" hidden><b id="chipNo">1</b><span id="chipPose"></span></div>
@@ -334,7 +348,10 @@
       <p class="lead">은혜로 여기까지,<br>오늘을 사진으로 남겨요<small><b id="secs">5</b>초 간격으로 <span id="nWord">네</span> 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
       <div class="steps" id="thumbs"></div>
       <div class="opt"><span class="label">Step 02 ✦ Filter</span><div class="chips" id="lookChips" role="group" aria-label="필터"></div></div>
-      <div class="opt"><span class="label">Sticker</span><div class="chips" id="stickerChips" role="group" aria-label="스티커"></div></div>
+      <div class="opt"><span class="label">Sticker ✦ 눌러서 추가, 화면에서 끌어서 옮기기</span>
+        <div class="tray" id="tray" role="group" aria-label="스티커"></div>
+        <div class="stk-tools"><button id="stkSmaller" type="button">작게</button><button id="stkBigger" type="button">크게</button><button id="stkDel" type="button">지우기</button><button id="stkClear" type="button">모두 지우기</button></div>
+      </div>
       <p class="hint" id="frameNow"></p>
       <ol class="guide">
         <li><i>01</i>안내에 맞춰 포즈를 취하며 촬영</li>
@@ -500,7 +517,7 @@
     if (sh > ih) { sh = ih; sw = ih * ratio; }
     const cx = c.getContext("2d");
     cx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, c.width, c.height);
-    drawSticker(cx, c.width, c.height); applyLook(c, look);
+    drawStickers(cx, c.width, c.height); applyLook(c, look);
     return c;
   }
   function grab(i) {
@@ -513,7 +530,7 @@
     if (S.mirror) { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
     ctx.drawImage(video, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, c.width, c.height);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    drawSticker(ctx, c.width, c.height);
+    drawStickers(ctx, c.width, c.height);
     applyLook(c, look);
     return c;
   }
@@ -596,7 +613,6 @@
       }
     };
     mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
-    mk($("stickerChips"), STICKERS, sticker, (k) => { sticker = k; renderChips(); drawStickerPreview(); });
     mk($("frameChips"), FRAMES, frame, (k) => { frame = k; renderChips(); renderCards(); }, true);
     $("frameNow").textContent = "프레임: " + LAY().name + " · " + (FRAMES[frame] || FRAMES.white).name + " (" + N() + "컷)";
   }
@@ -641,81 +657,76 @@
   }
   function previewLook() {
     const f = (LOOKS[look] && LOOKS[look].css) || "none";
-    video.style.filter = f; $("stickerfx").style.filter = f;
+    video.style.filter = f; $("stkLayer").style.filter = f;
     $("lookfx").className = "lookfx " + look;
   }
 
-  // ---- 스티커 (사진 속 소품) ----
-  // 기본은 직접 그린 에벤에셀 돌. config.stickerImages에 투명 PNG를 넣으면 그 그림을 씀
-  const STICKERS = { none: { name: "없음" }, ebenezer: { name: "에벤에셀 돌" } };
-  let sticker = STICKERS[C.sticker] ? C.sticker : "none";
-  const stickerPng = {};
-  for (const [k, src] of Object.entries(C.stickerImages || {})) {
-    if (!src || !STICKERS[k]) continue;
-    const im = new Image(); im.onload = () => { stickerPng[k] = im; drawStickerPreview(); }; im.src = src;
-  }
-  // 사진 오른쪽 아래, 사진 높이의 약 60% 크기 (가로로 긴 단체 사진은 조금 작게)
-  function drawSticker(ctx, w, h) {
-    if (sticker === "none") return;
-    const sh = h * (w / h > 1.7 ? .58 : .62), png = stickerPng[sticker];
-    const sw = png ? sh * png.naturalWidth / png.naturalHeight : sh * .66;
-    const x = w - sw - w * .03, y = h - sh - h * .01;
-    if (png) { ctx.drawImage(png, x, y, sw, sh); return; }
-    if (sticker === "ebenezer") drawEbenezer(ctx, x, y, sw, sh);
-  }
-  function drawEbenezer(ctx, x, y, w, h) {
-    ctx.save(); ctx.translate(x, y);
-    const lw = Math.max(2, w * .018);
-    // 그림자
-    ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(w * .5, h * .97, w * .5, h * .035, 0, 0, Math.PI * 2); ctx.fill();
-    // 큰 돌 (아래가 넓은 달걀 모양)
-    const stone = new Path2D();
-    stone.moveTo(w * .44, h * .03);
-    stone.bezierCurveTo(w * .7, h * .0, w * .9, h * .17, w * .93, h * .42);
-    stone.bezierCurveTo(w * .98, h * .6, w * .96, h * .8, w * .82, h * .9);
-    stone.bezierCurveTo(w * .65, h * .95, w * .3, h * .95, w * .15, h * .9);
-    stone.bezierCurveTo(w * .02, h * .8, w * .03, h * .56, w * .1, h * .38);
-    stone.bezierCurveTo(w * .15, h * .18, w * .25, h * .05, w * .44, h * .03);
-    const g = ctx.createRadialGradient(w * .38, h * .3, w * .05, w * .5, h * .5, w * .75);
-    g.addColorStop(0, "#efe0bf"); g.addColorStop(.6, "#d2bb8f"); g.addColorStop(1, "#9c8259");
-    ctx.fillStyle = g; ctx.fill(stone);
-    // 오른쪽 그늘 면
-    ctx.save(); ctx.clip(stone);
-    ctx.fillStyle = "rgba(90,66,40,.28)"; ctx.beginPath();
-    ctx.moveTo(w * .62, h * .1); ctx.bezierCurveTo(w * .78, h * .45, w * .7, h * .75, w * .55, h * .95); ctx.lineTo(w, h); ctx.lineTo(w, 0); ctx.closePath(); ctx.fill();
-    // 돌결
-    ctx.strokeStyle = "rgba(90,66,40,.35)"; ctx.lineWidth = lw * .6; ctx.lineCap = "round";
-    for (const [a, b2, c2, d] of [[.22, .2, .3, .26], [.7, .28, .78, .36], [.18, .72, .27, .76], [.74, .7, .82, .66]]) {
-      ctx.beginPath(); ctx.moveTo(w * a, h * b2); ctx.lineTo(w * c2, h * d); ctx.stroke();
+  // ---- 스티커 ----
+  // placed: 붙인 스티커 [{ id, x, y, s }] — x, y는 사진 안 중심 위치(0~1), s는 사진 높이 대비 크기
+  const STK = (Array.isArray(C.stickers) ? C.stickers : []).map(t => ({ ...t, src: t.src || "stickers/" + t.id + ".webp" }));
+  const STK_BY = Object.fromEntries(STK.map(t => [t.id, t]));
+  const stkImg = {};
+  for (const t of STK) { const im = new Image(); im.src = t.src; stkImg[t.id] = im; }
+  let placed = [], selIdx = -1;
+  const MAX_STK = 8;
+
+  function drawStickers(ctx, w, h) {
+    for (const p of placed) {
+      const im = stkImg[p.id]; if (!im || !im.naturalWidth) continue;
+      const dh = p.s * h, dw = dh * im.naturalWidth / im.naturalHeight;
+      ctx.drawImage(im, p.x * w - dw / 2, p.y * h - dh / 2, dw, dh);
     }
-    ctx.restore();
-    ctx.lineWidth = lw; ctx.strokeStyle = "#4a3a28"; ctx.stroke(stone);
-    // 새긴 글씨
-    ctx.fillStyle = "#4a3a28"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    let fs = w * .17; ctx.font = `900 ${fs}px 'Noto Serif KR', Georgia, serif`;
-    while (ctx.measureText("EBENEZER").width > w * .74 && fs > 8) { fs -= 1; ctx.font = `900 ${fs}px 'Noto Serif KR', Georgia, serif`; }
-    ctx.fillText("EBENEZER", w * .5, h * .4);
-    ctx.font = `700 ${w * .085}px 'Noto Serif KR', serif`; ctx.fillText("여기까지 도우셨다", w * .5, h * .52);
-    ctx.font = `700 ${w * .06}px 'Noto Serif KR', serif`; ctx.globalAlpha = .8; ctx.fillText("삼상 7:12", w * .5, h * .6); ctx.globalAlpha = 1;
-    // 받침 돌과 풀
-    for (const [cx, cy, rx, ry, col] of [[.14, .93, .14, .06, "#a8977c"], [.4, .955, .16, .055, "#b9a88b"], [.68, .95, .15, .06, "#a39274"], [.9, .93, .11, .05, "#b3a285"]]) {
-      ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(w * cx, h * cy, w * rx, h * ry, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.lineWidth = lw * .7; ctx.strokeStyle = "#4a3a28"; ctx.stroke();
-    }
-    ctx.strokeStyle = "#5f7a3a"; ctx.lineWidth = lw * .8;
-    for (const [bx, lean, hh] of [[.02, -.06, .16], [.06, .02, .12], [.95, .05, .15], [.99, -.02, .11]]) {
-      ctx.beginPath(); ctx.moveTo(w * bx, h * .96); ctx.quadraticCurveTo(w * (bx + lean * .3), h * (.96 - hh * .6), w * (bx + lean), h * (.96 - hh)); ctx.stroke();
-    }
-    ctx.restore();
   }
-  function drawStickerPreview() {
-    const cv = $("stickerfx"), r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
-    cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr));
-    const ctx = cv.getContext("2d"); ctx.clearRect(0, 0, cv.width, cv.height);
-    drawSticker(ctx, cv.width, cv.height);
+  function renderStickers() {
+    const layer = $("stkLayer"); layer.innerHTML = "";
+    placed.forEach((p, i) => {
+      const el = document.createElement("img");
+      el.className = "stk" + (i === selIdx ? " sel" : ""); el.src = STK_BY[p.id].src; el.alt = STK_BY[p.id].name; el.draggable = false;
+      el.style.left = (p.x * 100) + "%"; el.style.top = (p.y * 100) + "%"; el.style.height = (p.s * 100) + "%";
+      el.addEventListener("pointerdown", (e) => startDrag(e, i));
+      layer.appendChild(el);
+    });
+    const has = selIdx >= 0;
+    $("stkSmaller").disabled = $("stkBigger").disabled = $("stkDel").disabled = !has;
+    $("stkClear").disabled = !placed.length;
+    for (const b of $("tray").children) b.setAttribute("aria-pressed", String(placed.some(p => p.id === b.dataset.id)));
   }
-  if ("ResizeObserver" in window) new ResizeObserver(drawStickerPreview).observe($("stickerfx"));
-  document.fonts && document.fonts.load("900 40px 'Noto Serif KR'").then(drawStickerPreview).catch(() => {});
+  function startDrag(e, i) {
+    if (busy) return;
+    e.preventDefault(); selIdx = i;
+    const layer = $("stkLayer"), r = layer.getBoundingClientRect(), p = placed[i];
+    const ox = e.clientX - p.x * r.width, oy = e.clientY - p.y * r.height;
+    renderStickers();
+    const el = layer.children[i]; el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      p.x = Math.min(1, Math.max(0, (ev.clientX - ox) / r.width));
+      p.y = Math.min(1, Math.max(0, (ev.clientY - oy) / r.height));
+      el.style.left = (p.x * 100) + "%"; el.style.top = (p.y * 100) + "%";
+    };
+    const up = () => { el.removeEventListener("pointermove", move); el.removeEventListener("pointerup", up); el.removeEventListener("pointercancel", up); };
+    el.addEventListener("pointermove", move); el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+  }
+  function renderTray() {
+    const tray = $("tray"); tray.innerHTML = "";
+    for (const t of STK) {
+      const b = document.createElement("button"); b.type = "button"; b.dataset.id = t.id; b.setAttribute("aria-label", t.name + " 스티커 추가"); b.title = t.name;
+      const im = document.createElement("img"); im.src = t.src; im.alt = ""; im.loading = "lazy"; b.appendChild(im);
+      b.onclick = () => {
+        if (busy) return;
+        if (placed.length >= MAX_STK) return;
+        const at = Array.isArray(t.at) ? t.at : [.5, .5];
+        placed.push({ id: t.id, x: at[0], y: at[1], s: t.size || .25 }); selIdx = placed.length - 1; renderStickers();
+      };
+      tray.appendChild(b);
+    }
+    if (!STK.length) tray.closest(".opt").hidden = true;
+  }
+  const resizeSel = (k) => { if (selIdx < 0) return; const p = placed[selIdx]; p.s = Math.min(.95, Math.max(.05, p.s * k)); renderStickers(); };
+  $("stkSmaller").onclick = () => resizeSel(1 / 1.15);
+  $("stkBigger").onclick = () => resizeSel(1.15);
+  $("stkDel").onclick = () => { if (selIdx < 0) return; placed.splice(selIdx, 1); selIdx = -1; renderStickers(); };
+  $("stkClear").onclick = () => { placed = []; selIdx = -1; renderStickers(); };
+  $("stkLayer").addEventListener("pointerdown", (e) => { if (e.target === e.currentTarget && selIdx >= 0) { selIdx = -1; renderStickers(); } });
 
   // ---- 카운트다운 ----
   const ring = $("ring"), countNum = $("countNum");
@@ -817,7 +828,7 @@
   }
   async function finish() {
     pickVerse();
-    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'", "900 40px 'Noto Serif KR'"].map(f => document.fonts.load(f).catch(() => {})));
+    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
     if (current) URL.revokeObjectURL(current.url);
@@ -911,14 +922,14 @@
   function reset() { shots = new Array(N()).fill(null); uploaded = false; renderThumbs(); show("idle"); }
   function showHome(on) {
     $("home").hidden = !on;
-    if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; sticker = STICKERS[C.sticker] ? C.sticker : "none"; renderChips(); previewLook(); drawStickerPreview(); }
+    if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
   }
   function goHome() { if (!busy) showHome(true); }
 
   // ---- 이벤트 ----
   const allCuts = () => Array.from({ length: N() }, (_, i) => i);
   $("startBtn").onclick = () => { unlockAudio(); reset(); runSession(allCuts()); };
-  $("nextBtn").onclick = reset;
+  $("nextBtn").onclick = () => { placed = []; selIdx = -1; renderStickers(); reset(); };
   $("home").onclick = () => { unlockAudio(); showHome(false); showPick(true); };
   $("backBtn").onclick = () => { if (!busy) showPick(true); };
   $("pickBack").onclick = goHome;
@@ -984,7 +995,7 @@
   });
 
   $("secs").textContent = S.countdown;
-  applyLayout(); syncGear(); renderChips(); previewLook(); show("idle"); startCamera();
+  applyLayout(); syncGear(); renderChips(); renderTray(); renderStickers(); previewLook(); show("idle"); startCamera();
   // 촬영 화면에서 아무것도 안 하면 홈으로 (2분)
   let readyTimer = null;
   const armReady = () => { clearTimeout(readyTimer); readyTimer = setTimeout(() => { if ((!$("idleView").hidden || !$("pick").hidden) && $("home").hidden && !$("settings").open) goHome(); }, 120000); };

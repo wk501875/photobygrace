@@ -40,10 +40,39 @@ window.BOOTH_CONFIG = {
   look: "grace",
   frame: "white",
 
-  // 사진 속 스티커(소품): "none" 없음, "ebenezer" 에벤에셀 돌. 촬영 화면에서 바꿀 수 있어요
-  sticker: "none",
-  // 직접 만든 그림으로 바꾸려면 투명 배경 PNG 경로를 넣으세요. 예: ebenezer: "frames/ebenezer.png"
-  stickerImages: { ebenezer: "" },
+  // 사진에 붙이는 스티커 (촬영 화면에서 눌러 추가 → 카메라 화면에서 끌어서 옮기기)
+  // size: 사진 높이 대비 크기, at: 처음 놓이는 위치 [가로, 세로] (0~1). 그림은 stickers 폴더의 투명 이미지
+  stickers: [
+    { id: "stone-here-by-grace", name: "에벤에셀 비석", size: .62, at: [.8, .64] },
+    { id: "stone-tower",         name: "에벤에셀 돌탑", size: .7,  at: [.84, .6] },
+    { id: "stone-tree",          name: "나무와 비석",   size: .6,  at: [.8, .66] },
+    { id: "stone-tree-2",        name: "나무와 비석 2", size: .6,  at: [.8, .66] },
+    { id: "stone-candles",       name: "촛불 돌",       size: .38, at: [.74, .78] },
+    { id: "stone-candle-small",  name: "작은 촛불 돌",  size: .3,  at: [.2, .8] },
+    { id: "light-cloud",         name: "빛 구름",       size: .3,  at: [.25, .18] },
+    { id: "night-sky",           name: "밤하늘",        size: .26, at: [.85, .2] },
+    { id: "rainbow-big",         name: "무지개",        size: .36, at: [.2, .72] },
+    { id: "rainbow-cloud",       name: "구름 무지개",   size: .28, at: [.8, .2] },
+    { id: "rainbow",             name: "작은 무지개",   size: .2,  at: [.18, .2] },
+    { id: "dove",                name: "비둘기",        size: .24, at: [.84, .2] },
+    { id: "wreath",              name: "Grace 리스",    size: .28, at: [.18, .22] },
+    { id: "wax-seal",            name: "Grace 씰",      size: .22, at: [.85, .2] },
+    { id: "grace-book",          name: "Grace 우표",    size: .22, at: [.15, .2] },
+    { id: "ribbon",              name: "리본",          size: .16, at: [.5, .12] },
+    { id: "script-here-by-grace", name: "here by grace", size: .16, at: [.5, .12] },
+    { id: "script-by-his-grace", name: "by His grace",  size: .14, at: [.5, .88] },
+    { id: "text-here-by-grace",  name: "HERE BY GRACE", size: .2,  at: [.2, .15] },
+    { id: "text-all-grace",      name: "모든 것이 은혜", size: .24, at: [.18, .2] },
+    { id: "text-only-grace",     name: "오직 은혜",     size: .26, at: [.15, .22] },
+    { id: "text-grace",          name: "은혜",          size: .18, at: [.15, .15] },
+    { id: "heart",               name: "하트",          size: .12, at: [.88, .14] },
+    { id: "heart-small",         name: "작은 하트",     size: .09, at: [.12, .12] },
+    { id: "star",                name: "별",            size: .12, at: [.9, .12] },
+    { id: "olive",               name: "올리브",        size: .22, at: [.1, .8] },
+    { id: "wheat",               name: "밀 이삭",       size: .2,  at: [.9, .82] },
+    { id: "leaf",                name: "잎사귀",        size: .14, at: [.1, .9] },
+    { id: "sprout",              name: "새싹",          size: .12, at: [.9, .9] },
+  ],
 
   // 사진 아래에 넣을 은혜 말씀 (사진마다 하나씩 랜덤, 개역한글)
   // 줄을 추가·삭제해서 자유롭게 바꿀 수 있어요. 길면 글자가 자동으로 작아져요. 빼려면 verse: false
