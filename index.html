@@ -135,7 +135,8 @@
     <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15"></label>
     <label><span><input id="setMirror" type="checkbox"> 좌우 반전 (셀카 모드)</span></label>
     <label><span><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 자동 저장 (백업)</span></label>
-    <label>업로드 주소 (Apps Script 웹 앱 URL) <input id="setUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec"></label>
+    <label>행사 코드 (사진 업로드 비밀번호) <input id="setCode" type="password" autocomplete="off"></label>
+    <label>업로드 주소 (비워 두면 기본값 사용) <input id="setUrl" type="text" placeholder="/api/upload"></label>
     <p class="hint">여기서 바꾼 값은 이 브라우저에만 기억되고, config.js보다 우선합니다.</p>
     <div class="row"><button class="btn ghost" value="cancel">닫기</button><button class="btn" id="saveSettings" value="ok">저장</button></div>
   </form>
@@ -154,7 +155,7 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: C.uploadUrl, autoSave: true, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: true, deviceId: "" }, store.get());
 
   $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
@@ -331,13 +332,27 @@
 
   async function upload() {
     $("retryBtn").hidden = true;
-    if (!S.uploadUrl) { setStatus("업로드 주소가 설정되지 않아 QR을 만들 수 없어요. (설정 → 업로드 주소)", "err"); return; }
+    // 설정 화면에서 비워 두면 config.js의 주소를 씀
+    const url = S.uploadUrl || C.uploadUrl;
+    if (!url) { setStatus("업로드 주소가 설정되지 않아 QR을 만들 수 없어요. (설정 → 업로드 주소)", "err"); return; }
     setStatus("사진을 올리는 중이에요…");
     try {
-      const b64 = await new Promise((res, rej) => {
-        const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(current.blob);
-      });
-      const r = await fetch(S.uploadUrl, { method: "POST", body: JSON.stringify({ name: current.name, data: b64 }) });
+      let r;
+      if (/script\.google\.com/.test(url)) {
+        // 구글 Apps Script: JSON + base64
+        const b64 = await new Promise((res, rej) => {
+          const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(current.blob);
+        });
+        r = await fetch(url, { method: "POST", body: JSON.stringify({ name: current.name, data: b64 }) });
+      } else {
+        // Cloudflare R2 (functions/api/upload.js): JPEG 그대로 + 행사 코드
+        r = await fetch(url, { method: "POST", body: current.blob,
+          headers: { "Content-Type": "image/jpeg", "X-Event-Code": S.eventCode || "" } });
+        if (r.status === 401) {
+          setStatus("행사 코드가 맞지 않아요. 설정 → 행사 코드를 확인해 주세요.", "err");
+          $("retryBtn").hidden = false; return;
+        }
+      }
       const j = await r.json();
       if (!j.ok || !j.page) throw new Error(j.error || "응답 오류");
       showQR(j.page);
@@ -410,7 +425,7 @@
 
   $("gear").onclick = async () => {
     $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror;
-    $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || "";
+    $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
     const sel = $("camSel"); sel.innerHTML = "";
     try {
       (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput").forEach((d, i) => {
@@ -426,7 +441,7 @@
     S = Object.assign(S, {
       countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
       mirror: $("setMirror").checked, autoSave: $("setAutoSave").checked,
-      uploadUrl: $("setUrl").value.trim(), deviceId: $("camSel").value || S.deviceId,
+      uploadUrl: $("setUrl").value.trim(), eventCode: $("setCode").value.trim(), deviceId: $("camSel").value || S.deviceId,
     });
     store.set(S); $("secs").textContent = S.countdown;
     video.classList.toggle("mirror", !!S.mirror);

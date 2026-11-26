@@ -1,36 +1,58 @@
 # Here by Grace 네컷 (성도교제의 밤 포토부스)
 
-노트북 웹캠으로 4컷을 찍고, 완성된 사진을 구글 드라이브에 올린 뒤 **QR 코드**로 나눠 주는 포토부스입니다.
+노트북 웹캠으로 4컷을 찍고, 완성된 사진을 저장소(기본: Cloudflare R2)에 올린 뒤 **QR 코드**로 나눠 주는 포토부스입니다.
 인쇄는 하지 않고, 성도분들이 QR을 찍어 각자 휴대폰에 사진을 받아 가요.
+
+- 촬영 화면: https://photobygrace.pages.dev
+- 사진 관리: https://photobygrace.pages.dev/admin (관리자 비밀번호)
 
 ```
 photobygrace/
-├─ index.html          촬영 화면 (크롬으로 열기)
-├─ config.js           행사 문구·프레임·사진 칸 위치 설정
-├─ vendor/qrcode.js    QR 생성 라이브러리 (인터넷 없이 동작)
+├─ index.html          촬영 화면
+├─ config.js           행사 문구·프레임·사진 칸 위치·업로드 주소 설정
+├─ vendor/qrcode.js    QR 생성 라이브러리
 ├─ frames/             디자인한 프레임 PNG를 넣는 곳
-└─ apps-script/Code.gs 구글 드라이브 업로드 + 다운로드 페이지
+├─ functions/          Cloudflare Pages Functions (서버 쪽)
+│  ├─ api/upload.js    사진 업로드 → R2 저장
+│  ├─ p/[id].js        QR을 찍으면 열리는 다운로드 페이지
+│  ├─ img/[id].js      사진 파일
+│  └─ admin/           사진 관리 페이지 (목록·저장·삭제)
+└─ apps-script/Code.gs 구글 드라이브로 바꿀 때 쓰는 예비 코드
 ```
 
-## 1. QR 다운로드 설정 (최초 1회, 10분)
+## 1. Cloudflare R2 연결 (최초 1회)
 
-1. 교회 구글 계정으로 드라이브에 폴더를 하나 만듭니다. 예: `성도교제의밤_네컷`
-   폴더를 열었을 때 주소 `https://drive.google.com/drive/folders/XXXX` 의 `XXXX`가 폴더 ID입니다.
-2. [script.google.com](https://script.google.com) → **새 프로젝트** → `apps-script/Code.gs` 내용을 붙여 넣고,
-   맨 위 `FOLDER_ID`에 폴더 ID를 넣고 저장합니다.
-3. 오른쪽 위 **배포 → 새 배포** → 유형 **웹 앱**
-   - 실행 사용자: **나**
-   - 액세스 권한: **모든 사용자**
-   → 배포하면 권한 승인 창이 뜹니다. 계정 선택 → 고급 → "안전하지 않은 페이지로 이동" → 허용.
-4. 나온 **웹 앱 URL**(`https://script.google.com/macros/s/.../exec`)을 `config.js`의 `uploadUrl`에 넣습니다.
-   (또는 촬영 화면 오른쪽 아래 **설정 → 업로드 주소**에 붙여 넣어도 됩니다.)
+1. **R2 켜기**: Cloudflare 대시보드 → **R2 Object Storage** → 처음이면 결제 수단 등록 후 활성화
+   (무료 한도: 저장 10GB/월, 다운로드 전송 무료)
+2. **버킷 만들기**: **Create bucket** → 이름 `photobygrace-photos` → 위치는 자동
+3. **Pages에 연결**: **Workers & Pages** → `photobygrace` → **Settings** → **Bindings** → **Add** → **R2 bucket**
+   - Variable name: `PHOTOS`
+   - R2 bucket: `photobygrace-photos`
+4. **비밀번호 두 개 넣기**: 같은 **Settings** → **Variables and Secrets** → **Add** (Type: **Secret**)
+   - `EVENT_CODE`: 촬영 노트북에서 업로드할 때 쓰는 행사 코드 (예: 영문+숫자 8자 이상)
+   - `ADMIN_PASSWORD`: 사진 관리 페이지 비밀번호
+5. **다시 배포**: **Deployments** → 최신 배포 오른쪽 `…` → **Retry deployment**
+   (설정은 다음 배포부터 적용돼요)
+6. 촬영 노트북에서 사이트를 열고 **설정 → 행사 코드**에 `EVENT_CODE`와 같은 값을 넣고 저장합니다.
 
-> Code.gs를 고친 뒤에는 **배포 → 배포 관리 → 수정 → 새 버전**으로 다시 배포해야 반영됩니다.
+### 사진 자동 삭제 (권장)
+
+R2 → `photobygrace-photos` → **Settings** → **Object lifecycle rules** → **Add rule**
+→ 접두사 `p/`, **Delete objects** after **45일** 처럼 설정하면 행사 후 사진이 자동으로 지워져요.
+(2주 행사 + 받아 갈 여유 기간)
+
+### 저장소를 바꾸고 싶을 때
+
+`config.js`의 `uploadUrl`만 바꾸면 됩니다.
+
+- Cloudflare R2 (기본): `"/api/upload"`
+- 구글 드라이브: `apps-script/Code.gs`를 Apps Script 웹 앱으로 배포하고 그 주소(`https://script.google.com/.../exec`)를 넣기
+  (폴더 만들기 → 코드 붙여 넣고 `FOLDER_ID` 입력 → 배포 → 새 배포 → 웹 앱 / 실행: 나 / 액세스: 모든 사용자)
 
 ## 2. 행사 당일 실행
 
-1. 노트북에서 `photobygrace` 폴더를 열고 `index.html`을 **크롬**으로 엽니다.
-   카메라 권한을 물으면 **허용**.
+1. 노트북 크롬에서 https://photobygrace.pages.dev 를 엽니다. 카메라 권한을 물으면 **허용**.
+   - 화면에 자물쇠 그림만 나오면 카메라 가림막이나 키보드의 카메라 끄기 키(F8~F10 등)를 확인하세요.
 2. 외장 웹캠을 쓰면 **설정 → 카메라**에서 고릅니다.
 3. 큰 모니터나 TV에 연결하고 `F11`로 전체 화면.
 4. **촬영 시작**(또는 스페이스바) → 5초 카운트다운 × 4컷 → 자동 업로드 → QR 표시.
@@ -39,9 +61,14 @@ photobygrace/
 6. **다음 분 촬영하기**로 넘어갑니다.
 
 **설정 → "이 기기에도 자동 저장"** 이 켜져 있으면 모든 사진이 노트북 `다운로드` 폴더에도 백업됩니다.
-인터넷이 끊겨도 사진은 남으니, 나중에 드라이브 폴더 링크를 단톡방에 공유하면 됩니다.
+인터넷이 끊겨도 사진은 노트북에 남아요.
 
-## 3. 프레임 디자인 바꾸기 (나중에)
+## 3. 사진 관리
+
+https://photobygrace.pages.dev/admin 에 들어가면 브라우저 로그인 창이 뜹니다.
+아이디는 아무거나, 비밀번호는 `ADMIN_PASSWORD`. 최신순 목록에서 사진을 저장하거나 삭제(두 번 눌러 확인)할 수 있어요.
+
+## 4. 프레임 디자인 바꾸기 (나중에)
 
 지금은 흰 바탕에 하단 문구(`title`, `subtitle`, `footer`)만 있는 기본 프레임입니다.
 
@@ -52,17 +79,24 @@ photobygrace/
   - 칸 위치나 비율을 바꾸면 `config.js`의 `slots`도 같게 고쳐 주세요. 카메라 미리보기는 첫 칸 비율을 따릅니다.
 - 캔바(Canva)나 미리캔버스에서 1200 × 3600 사이즈로 만들고 PNG(투명 배경)로 내보내면 됩니다.
 
+## 로컬에서 테스트
+
+```bash
+npx wrangler pages dev . --r2 PHOTOS --binding EVENT_CODE=test1234 --binding ADMIN_PASSWORD=pw
+```
+
+http://localhost:8788 에서 촬영 → 설정의 행사 코드에 `test1234` 입력.
+
 ## 준비물 체크리스트
 
 - 노트북 + 크롬, 웹캠(노트북 내장도 가능), 모니터/TV
 - **인터넷** (교회 와이파이 또는 휴대폰 핫스팟) — QR 업로드에 필요
 - 조명 (링라이트 하나만 있어도 사진이 훨씬 밝아요)
 - 소품, 포토존 배경
-- 안내문: "사진은 교회 구글 드라이브에 저장되며, 행사 후 ○○일에 삭제됩니다"
+- 안내문: "사진은 QR로 받아 가실 수 있고, 행사 종료 후 ○○일에 삭제됩니다"
 
 ## 참고
 
-- QR을 찍으면 그 사람 사진 한 장만 보이는 페이지가 열립니다. 폴더 전체는 공개되지 않아요.
-- 처음 열 때 "Google에서 만든 앱이 아님" 같은 회색 안내줄이 보일 수 있는데 정상입니다.
-- 사진 한 장 약 1MB. 구글 드라이브 무료 15GB면 수천 장도 충분합니다.
-- 행사 후 드라이브 폴더를 정리하면 QR 링크도 함께 사라집니다.
+- QR을 찍으면 그 사람 사진 한 장만 보이는 페이지가 열립니다. 다른 사진 목록은 공개되지 않아요.
+- 사진 한 장 약 1MB. R2 무료 10GB면 수천 장도 충분합니다.
+- R2에는 요금 상한 기능이 없으니, 행사 코드와 자동 삭제 규칙을 꼭 설정해 두세요.
