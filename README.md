@@ -108,6 +108,17 @@ R2 → `photobygrace-photos` → **Settings** → **Object lifecycle rules** →
 - 홈 화면으로 돌아가면 `config.js`의 `look`, `frame` 기본값으로 다시 맞춰져요.
 - 사진 아래에는 은혜에 관한 말씀(개역한글)이 하나씩 랜덤으로 들어가요. `config.js`의 `verses` 목록에서 추가·삭제할 수 있고, 길면 글자가 자동으로 작아져요. 빼려면 `verse: false`.
 
+### 화면 테마 (시안 3종)
+
+| 테마 | 느낌 | 미리 보기 |
+|---|---|---|
+| `blue` 블루 | 로열 블루 + 흰 세리프 | `https://photobygrace.pages.dev/?theme=blue` |
+| `mono` 흑백 | 검은 바탕 + 흑백 사진 + 흰 세리프 | `?theme=mono` |
+| `forest` 숲 | 짙은 올리브 + 노란 장식 세리프 + 별 | `?theme=forest` |
+
+- 주소 뒤에 `?theme=…`를 붙여 열면 그 기기에 기억돼요. 태블릿 설정의 "화면 테마"로도 바꿀 수 있고, 기본값은 `config.js`의 `theme`.
+- 사진 프레임 색은 `frame: "auto"`면 테마에 맞춰요(블루→파란색, 흑백→검은색, 숲→올리브).
+
 ## 3. 사진 관리
 
 https://photobygrace.pages.dev/admin 에 들어가면 브라우저 로그인 창이 뜹니다.

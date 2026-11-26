@@ -32,38 +32,36 @@ export function safeEqual(a, b) {
 }
 
 // 휴대폰용 페이지 틀 — 촬영 화면과 같은 흑백 에디토리얼
-export const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">`;
+export const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&family=Montserrat:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">`;
 
 export function page(title, inner) {
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ececec">
+<meta name="theme-color" content="#26398b">
 <title>${title}</title>
 ${FONTS}
 <style>
-  :root { color-scheme: light; --bg:#ececec; --card:#fff; --soft:#f3f3f3; --line:#e1e1e1; --ink:#111; --mute:#8a8a8a; }
+  :root { color-scheme: dark; --bg:#26398b; --line:rgba(255,255,255,.24); --ink:#fff; --mute:rgba(233,236,250,.72); --on-ink:#26398b; }
   * { box-sizing:border-box; }
-  body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink); letter-spacing:-0.01em;
+  body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink);
          font-family:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
-  main { max-width:480px; margin:0 auto;
-         padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-  .card { background:var(--card); border-radius:28px; padding:24px 22px 26px; }
-  .label { font-family:"Inter",system-ui,sans-serif; font-weight:600; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); }
-  .top { display:flex; justify-content:space-between; }
-  h1 { font-family:"Anton","Arial Narrow",sans-serif; font-weight:400; font-size:52px; line-height:.9; margin:14px 0 0; text-transform:uppercase; }
-  .sub { color:var(--mute); margin:8px 0 0; font-size:14px; }
-  .photo { display:block; height:min(52dvh,880px); width:auto; max-width:100%; margin:22px auto; box-shadow:0 1px 0 var(--line), 0 20px 36px -22px rgba(0,0,0,.4); -webkit-touch-callout: default; }
-  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:19px; border-radius:999px;
-         text-decoration:none; color:#fff; background:var(--ink); }
-  .btn::after { content:"↓"; font-family:"Inter",sans-serif; font-weight:500; }
+  main { max-width:480px; margin:0 auto; text-align:center;
+         padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .kicker { font-family:"Montserrat",sans-serif; font-weight:500; letter-spacing:.32em; text-transform:uppercase; font-size:15px; margin:0; }
+  h1 { font-family:"Oranienbaum","Bodoni 72",Didot,serif; font-weight:400; font-size:88px; line-height:.85; margin:6px 0 0; text-transform:uppercase; }
+  .sub { color:var(--mute); margin:12px 0 0; font-size:14px; }
+  .photo { display:block; max-height:52dvh; max-width:100%; width:auto; height:auto; margin:24px auto; box-shadow:0 24px 40px -20px rgba(8,14,48,.6); -webkit-touch-callout: default; }
+  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:18px; border-radius:999px;
+         text-decoration:none; color:var(--on-ink); background:#fff; }
+  .btn::after { content:"↓"; font-family:"Montserrat",sans-serif; font-weight:500; }
   .btn:active { transform:scale(.98); }
-  .btn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }
-  .tip { color:var(--mute); font-size:13px; line-height:1.7; margin:14px 0 0; text-align:center; }
-  .verse { margin:18px 4px 0; display:flex; justify-content:space-between; gap:12px; align-items:baseline; color:var(--mute); font-size:13px; }
-  .verse b { color:var(--ink); font-weight:500; }
+  .btn:focus-visible { outline:3px solid #fff; outline-offset:3px; }
+  .tip { color:var(--mute); font-size:13px; line-height:1.7; margin:14px 0 0; }
+  .verse { margin:28px 0 0; padding-top:18px; border-top:1px solid var(--line); font-family:"Noto Serif KR",serif; font-size:16px; }
+  .verse span { display:block; margin-top:6px; font-family:"Montserrat",sans-serif; font-size:11px; letter-spacing:.24em; color:var(--mute); }
   .empty { margin:40px 0 10px; color:var(--mute); line-height:1.7; }
 </style></head><body><main>
-<div class="card"><div class="top"><span class="label">Photo Booth ✦</span><span class="label">Keep the grace alive</span></div>${inner}</div>
-<p class="verse"><b>여호와께서 여기까지 우리를 도우셨다</b><span>삼상 7:12</span></p>
+${inner}
+<p class="verse">여호와께서 여기까지 우리를 도우셨다<span>사무엘상 7:12</span></p>
 </main></body></html>`;
 }

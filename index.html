@@ -9,25 +9,57 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="네컷">
-<meta name="theme-color" content="#ececec">
+<meta name="theme-color" content="#26398b">
 <link rel="apple-touch-icon" href="icon-512.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&family=Cinzel:wght@500;600&family=Cinzel+Decorative:wght@700;900&family=Montserrat:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;700&display=swap">
 <style>
-  /* 포토부스 키오스크 — 흑백 에디토리얼. 밝은 회색 바탕, 흰 카드, 검은 알약 버튼, 좁고 굵은 영문 제목.
-     카메라(왼쪽/위) + 안내 패널(오른쪽/아래). 조명 아래 밝은 공간에 두는 기기라 밝은 화면 한 가지로 디자인. */
+  /* 포토부스 키오스크 — "Saved by Grace" 포스터처럼: 짙은 로열 블루 바탕, 흰 글자, 높고 대비 강한 세리프 GRACE,
+     넓게 띄운 영문 소문자 라벨, 가는 선. QR처럼 또렷해야 하는 것만 크림색 종이 카드 위에 둠.
+     카메라(왼쪽/위) + 안내 패널(오른쪽/아래). 한 가지 색 세계로만 디자인. */
   :root {
-    color-scheme: light;
-    --bg: #ececec;        /* 바탕 */
-    --card: #ffffff;      /* 패널 */
-    --soft: #f3f3f3;      /* 빈 칸, QR 카드 */
-    --line: #e1e1e1;
-    --ink: #111111;       /* 글자, 버튼 */
-    --mute: #8a8a8a;      /* 보조 글자 */
-    --ok: #1f7a3a; --warn: #c62828;
-    --display: "Anton", "Arial Narrow", "Noto Sans KR", sans-serif;
-    --latin: "Inter", system-ui, sans-serif;
+    color-scheme: dark;
+    --bg: #26398b;        /* 로열 블루 바탕 */
+    --bg-deep: #1d2c70;   /* 대화상자, 카메라 테두리 */
+    --card: rgba(255,255,255,.06);   /* 패널 */
+    --soft: rgba(255,255,255,.10);   /* 빈 칸 */
+    --line: rgba(255,255,255,.24);   /* 가는 선 */
+    --ink: #ffffff;       /* 글자 */
+    --on-ink: #26398b;    /* 흰 버튼 위 글자 */
+    --mute: rgba(233,236,250,.70);
+    --paper: #f6f3ea;     /* QR·사진 카드 */
+    --paper-ink: #1b2a6b;
+    --accent: #f2e27d;    /* 아주 조금만: 고른 사진 번호, 카운트다운 */
+    --btn: #ffffff;       /* 주 버튼, 선택된 칩 */
+    --home-filter: grayscale(1) contrast(1.05); --home-opacity: .32; --home-blend: luminosity;
+    --ok: #9be3b4; --warn: #ffb4a8;
+    --display: "Oranienbaum", "Bodoni 72", "Didot", "Noto Serif KR", serif;
+    --latin: "Montserrat", system-ui, sans-serif;
+    --kick: "Montserrat", system-ui, sans-serif;   /* HERE BY 같은 띄운 라벨 */
+    --serif-ko: "Noto Serif KR", "AppleMyungjo", serif;
     --body: "Noto Sans KR", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   }
+  /* 시안 B — 흑백: 검은 바탕, 흑백 사진, 흰 세리프 */
+  :root[data-theme="mono"] {
+    --bg: #0e0e0e; --bg-deep: #000; --card: rgba(255,255,255,.05); --soft: rgba(255,255,255,.09); --line: rgba(255,255,255,.22);
+    --ink: #fff; --on-ink: #111; --mute: rgba(255,255,255,.62); --accent: #e9e3d0; --btn: #fff;
+    --home-filter: grayscale(1) contrast(1.15) brightness(.9); --home-opacity: .5; --home-blend: normal; --vignette: rgba(0,0,0,.6);
+  }
+  /* 시안 A — 숲: 짙은 올리브 바탕, 노란 장식 세리프, 가는 노란 선, 반짝이는 별 */
+  :root[data-theme="forest"] {
+    --bg: #2c3122; --bg-deep: #1f2318; --card: rgba(244,234,108,.05); --soft: rgba(244,234,108,.10); --line: rgba(244,234,108,.42);
+    --ink: #f4ea6c; --on-ink: #2c3122; --mute: rgba(244,234,108,.72); --accent: #f4ea6c; --btn: #f4ea6c;
+    --display: "Cinzel Decorative", "Oranienbaum", serif; --kick: "Cinzel", serif;
+    --home-filter: grayscale(1) sepia(.5) contrast(1.1) brightness(.85); --home-opacity: .55; --home-blend: luminosity; --vignette: rgba(16,18,10,.6);
+  }
+  :root[data-theme="forest"] .home-title { font-weight: 700; font-size: min(26vh, 15vw); line-height: .95; }
+  :root[data-theme="forest"] .home-center .kicker { letter-spacing: .18em; }
+  :root[data-theme="forest"] .brand h1 { font-weight: 700; font-size: 40px; line-height: 1; }
+  /* 숲 테마: 제목 둘레 네 갈래 별 */
+  .stars { display: none; }
+  :root[data-theme="forest"] .stars { display: block; position: absolute; inset: 0; pointer-events: none; }
+  .stars i { position: absolute; width: var(--s); aspect-ratio: 1; background: var(--ink);
+             clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); }
+
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; overscroll-behavior: none; }
@@ -35,7 +67,9 @@
          -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; touch-action: manipulation; }
   button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-  .label { font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+  .label { font-family: var(--latin); font-weight: 500; font-size: 12px; letter-spacing: .24em; text-transform: uppercase; color: var(--mute); }
+  .tag { font-family: var(--body); font-size: 13px; font-weight: 500; letter-spacing: .02em; color: var(--mute); }
+  .kicker { font-family: var(--kick); font-weight: 500; letter-spacing: .32em; text-transform: uppercase; margin: 0; }
 
   .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 20px;
          padding-block: max(20px, env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-bottom, 0px));
@@ -43,7 +77,8 @@
 
   /* ---------- 카메라: 결과 사진과 같은 3:2, 남는 공간 안에서 최대 ---------- */
   .stage { container-type: size; min-height: 0; display: grid; place-items: center; }
-  .cam { position: relative; width: min(100cqw, calc(var(--ratio, 1.5) * 100cqh)); aspect-ratio: var(--ratio, 1.5); border-radius: 32px; overflow: hidden; background: #000; }
+  .cam { position: relative; width: min(100cqw, calc(var(--ratio, 1.5) * 100cqh)); aspect-ratio: var(--ratio, 1.5); border-radius: 6px; overflow: hidden; background: #000;
+         box-shadow: 0 0 0 1px var(--line), 0 0 0 10px var(--bg), 0 0 0 11px var(--line); }
   .cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
   .cam video.mirror { transform: scaleX(-1); }
   /* 필터 미리보기: 영상에는 CSS 필터, 빛 효과는 위에 덧씌움 (찍힐 때는 같은 효과를 캔버스로 입힘) */
@@ -52,7 +87,7 @@
   .lookfx.soft { opacity: 1; background: radial-gradient(80% 70% at 50% 45%, rgba(255,255,255,.18), transparent 70%); }
   .lookfx.grace { opacity: 1; background:
       radial-gradient(70% 60% at 30% -5%, rgba(255,226,160,.55), transparent 65%),
-      linear-gradient(118deg, transparent 18%, rgba(255,240,205,.30) 24%, transparent 31%, transparent 38%, rgba(255,240,205,.22) 44%, transparent 52%, transparent 60%, rgba(255,240,205,.16) 66%, transparent 73%); }
+      linear-gradient(118deg, transparent 18%, rgba(255,240,205,.18) 25%, transparent 33%, transparent 40%, rgba(255,240,205,.12) 46%, transparent 53%); }
   /* 스티커: 카메라 화면 위에서 끌어 옮김 */
   .stk-layer { position: absolute; inset: 0; z-index: 2; transition: filter .3s ease; }
   .stk { position: absolute; transform: translate(-50%, -50%); touch-action: none; cursor: grab; -webkit-user-drag: none; user-select: none; }
@@ -62,9 +97,9 @@
   .tray { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scroll-snap-type: x proximity; }
   .tray button { flex: none; width: 64px; height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--soft); padding: 6px; cursor: pointer; scroll-snap-align: start; }
   .tray button img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-  .tray button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); background: #fff; }
+  .tray button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--ink); background: rgba(255,255,255,.22); }
   .stk-tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .stk-tools button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .stk-tools button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 500; cursor: pointer; }
   .stk-tools button:disabled { opacity: .35; }
   .stk-tools .hint { margin-left: auto; }
   .lookfx.film { opacity: 1; mix-blend-mode: multiply; background: radial-gradient(90% 90% at 50% 50%, transparent 55%, rgba(60,40,20,.35)); }
@@ -76,16 +111,16 @@
       linear-gradient(var(--b), var(--b)) bottom left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom left / var(--t) var(--l) no-repeat,
       linear-gradient(var(--b), var(--b)) bottom right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom right / var(--t) var(--l) no-repeat; }
   .chip { position: absolute; z-index: 3; top: 34px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
-          background: #fff; color: var(--ink); padding: 10px 20px 10px 10px; border-radius: 999px; font-size: 18px; font-weight: 500; white-space: nowrap; }
-  .chip b { font-family: var(--latin); font-weight: 600; font-size: 13px; letter-spacing: .08em; background: var(--ink); color: #fff; border-radius: 999px; padding: 6px 10px; }
+          background: #fff; color: var(--paper-ink); padding: 10px 20px 10px 10px; border-radius: 999px; font-size: 18px; font-weight: 500; white-space: nowrap; }
+  .chip b { font-family: var(--latin); font-weight: 600; font-size: 13px; letter-spacing: .08em; background: var(--on-ink); color: #fff; border-radius: 999px; padding: 6px 10px; }
   .count { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; pointer-events: none; }
   .ring { width: min(40%, 280px); aspect-ratio: 1; position: relative; display: grid; place-items: center; }
   .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-  .ring circle { fill: rgba(0,0,0,.28); stroke: #fff; stroke-width: 2.5; stroke-dasharray: 289; stroke-dashoffset: 0; }
+  .ring circle { fill: rgba(29,44,112,.35); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 289; stroke-dashoffset: 0; }
   .ring.tick circle { animation: drain 1s linear forwards; }
   @keyframes drain { to { stroke-dashoffset: 289; } }
   .ring span { position: relative; font-family: var(--display); color: #fff; font-size: clamp(100px, 15vw, 210px); line-height: 1; }
-  .ring.ready span { font-family: var(--body); font-weight: 700; font-size: clamp(30px, 4vw, 46px); }
+  .ring.ready span { font-family: var(--serif-ko); font-weight: 700; font-size: clamp(30px, 4vw, 46px); }
   .flash { position: absolute; inset: 0; z-index: 4; background: #fff; opacity: 0; pointer-events: none; }
   .flash.on { animation: flash .5s ease-out; }
   @keyframes flash { from { opacity: .95 } to { opacity: 0 } }
@@ -102,9 +137,10 @@
   .app.shooting .chip b { font-size: 15px; }
 
   /* ---------- 패널 ---------- */
-  .panel { background: var(--card); border-radius: 32px; padding: 28px; display: flex; flex-direction: column; gap: 24px; min-height: 0; overflow: auto; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 28px; display: flex; flex-direction: column; gap: 24px; min-height: 0; overflow: auto; }
   .topline { display: flex; justify-content: space-between; align-items: center; }
-  .brand h1 { font-family: var(--display); font-weight: 400; font-size: 46px; line-height: .9; margin: 0; text-transform: uppercase; letter-spacing: .005em; }
+  .brand .kicker { font-size: 13px; }
+  .brand h1 { font-family: var(--display); font-weight: 400; font-size: 54px; line-height: .86; margin: 4px 0 0; text-transform: uppercase; letter-spacing: .01em; }
   .brand p { margin: 10px 0 0; color: var(--mute); font-size: 15px; }
   .view { display: flex; flex-direction: column; gap: 22px; flex: 1; min-height: 0; }
 
@@ -116,9 +152,9 @@
   .slot.filled { color: transparent; }
   .slot.retake { cursor: pointer; }
   .slot.retake::after { content: "다시"; position: absolute; right: 6px; bottom: 6px; font-family: var(--body); font-size: 12px; font-weight: 500; letter-spacing: 0;
-                        padding: 3px 9px; border-radius: 999px; background: #fff; color: var(--ink); }
+                        padding: 3px 9px; border-radius: 999px; background: var(--btn); color: var(--on-ink); }
 
-  .lead { font-size: 25px; font-weight: 700; line-height: 1.3; margin: 0; letter-spacing: -0.03em; text-wrap: balance; }
+  .lead { font-family: var(--serif-ko); font-size: 25px; font-weight: 700; line-height: 1.3; margin: 0; letter-spacing: -0.03em; text-wrap: balance; }
   .lead small { display: block; font-size: 15px; font-weight: 400; color: var(--mute); margin-top: 10px; letter-spacing: -0.01em; line-height: 1.5; }
   .guide { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
   #idleView .guide { display: none; }
@@ -126,7 +162,7 @@
   .guide li i { font-style: normal; font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .1em; color: var(--mute); }
 
   .cta { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 12px; border: 0; border-radius: 999px; padding: 24px 28px;
-         font-size: 22px; font-weight: 700; cursor: pointer; background: var(--ink); color: #fff; }
+         font-size: 22px; font-weight: 700; cursor: pointer; background: var(--btn); color: var(--on-ink); }
   .cta::after { content: "→"; font-family: var(--latin); font-weight: 500; }
   .cta:active { transform: scale(.98); }
   .cta:disabled { opacity: .4; }
@@ -136,37 +172,40 @@
 
   .opt { display: grid; gap: 10px; }
   #idleView { gap: 16px; }
-  #idleView .steps, #idleView .lead small { display: none; }
+  #idleView .steps, #idleView .lead { display: none; }
   .lay { display: inline-flex; align-items: center; gap: 8px; }
   .lay svg { width: 18px; height: 18px; flex: none; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chips button { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 10px 16px; font-size: 15px; font-weight: 500; cursor: pointer; }
-  .chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .chips button { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 999px; padding: 10px 16px; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .chips button[aria-pressed="true"] { background: var(--btn); border-color: var(--btn); color: var(--on-ink); }
   .chips button .sw { display: inline-block; width: 12px; height: 12px; border-radius: 999px; margin-right: 6px; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
 
   .pose { padding: 12px 0 4px; }
-  .pose .t { font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
+  .pose .t { font-family: var(--serif-ko); font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
 
   /* ---------- 결과: 카메라를 접고 전체 폭 — 사진 | QR | 다시 찍기·다음 ---------- */
   .app.done, .app.select { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
   .app.done .stage, .app.select .stage { display: none; }
   /* 고르기: 미리보기 | 찍은 사진들 */
-  #selectView { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: stretch; }
+  #selectView { display: grid; grid-template-columns: var(--pvw, 300px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 28px; align-items: stretch; }
   .sel-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
-  .sel-side h2 { margin: 6px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
-  .takes { display: grid; grid-template-columns: repeat(var(--tc, 3), minmax(0, 1fr)); gap: 18px; align-content: start; overflow: auto; min-height: 0; padding: 6px; }
-  .take { position: relative; border: 0; padding: 0; border-radius: 14px; overflow: hidden; aspect-ratio: var(--ratio, 1.5); background: var(--soft) center / cover no-repeat; cursor: pointer; }
-  .take[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--ink); }
-  .take[aria-pressed="false"] { opacity: .55; }
+  .sel-side h2 { margin: 6px 0 0; font-family: var(--serif-ko); font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+  /* 사진 칸 크기는 JS(fitTakes)가 남는 공간에 맞춰 계산 → 겹치거나 작아지지 않음 */
+  .takes { flex: 1 1 auto; min-height: 0; display: grid; gap: 16px; align-content: center; justify-content: center; overflow: hidden; padding: 6px; }
+  .take { position: relative; border: 0; padding: 0; border-radius: 12px; overflow: hidden; background: var(--soft) center / cover no-repeat; cursor: pointer; }
+  .take[aria-pressed="true"] { box-shadow: 0 0 0 4px var(--btn); }
+  .take[aria-pressed="false"] { opacity: .45; }
   .take b { position: absolute; top: 8px; left: 8px; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 999px; display: grid; place-items: center;
-            background: var(--ink); color: #fff; font-family: var(--latin); font-size: 14px; font-weight: 600; }
-  .take[aria-pressed="false"] b { background: rgba(255,255,255,.9); color: var(--ink); }
-  #doneView { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 380px); gap: 24px; align-items: stretch; }
-  .strip { height: 100%; max-height: calc(100dvh - 230px); width: auto; max-width: min(100%, 34vw); object-fit: contain; justify-self: center;
-           box-shadow: 0 1px 0 var(--line), 0 24px 40px -24px rgba(0,0,0,.35); }
-  .qrcard { background: var(--soft); border-radius: 24px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; min-width: 0; }
-  .qrcard h2 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-  .qrframe { position: relative; width: 100%; max-width: 340px; aspect-ratio: 1; padding: 22px; --b: var(--ink); --l: 34px; --t: 3px;
+            background: var(--accent); color: var(--paper-ink); font-family: var(--latin); font-size: 14px; font-weight: 600; }
+  .take[aria-pressed="false"] b { background: rgba(255,255,255,.9); color: var(--paper-ink); }
+  #doneView { display: grid; grid-template-columns: var(--pvw, 300px) minmax(0, 1fr) minmax(0, 340px); grid-template-rows: minmax(0, 1fr); gap: 24px; align-items: stretch; }
+  /* 사진 미리보기: 칸 안에서 비율 그대로 최대 크기 (늘어나지 않음) */
+  .pv { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .pv img { display: block; max-width: 100%; max-height: 100%; width: auto; height: auto; box-shadow: 0 24px 40px -20px rgba(8,14,48,.6); }
+  .qrcard { background: var(--paper); color: var(--paper-ink); border-radius: 4px; padding: 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; min-width: 0; }
+  .qrcard h2 { margin: 0; font-family: var(--serif-ko); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .qrcard .spinner { border-color: rgba(27,42,107,.15); border-top-color: var(--paper-ink); }
+  .qrframe { position: relative; width: 100%; max-width: 340px; aspect-ratio: 1; padding: 22px; --b: var(--paper-ink); --l: 34px; --t: 3px;
     background:
       linear-gradient(var(--b), var(--b)) top left / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top left / var(--t) var(--l) no-repeat,
       linear-gradient(var(--b), var(--b)) top right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) top right / var(--t) var(--l) no-repeat,
@@ -174,9 +213,8 @@
       linear-gradient(var(--b), var(--b)) bottom right / var(--l) var(--t) no-repeat, linear-gradient(var(--b), var(--b)) bottom right / var(--t) var(--l) no-repeat; }
   .qrcard #qr { width: 100%; height: 100%; display: grid; place-items: center; background: #fff; border-radius: 6px; }
   .qrcard canvas { width: 100%; height: auto; image-rendering: pixelated; }
-  .qrcard ol { margin: 0; padding: 0; list-style: none; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; font-size: 14px; color: var(--mute); }
-  .qrcard ol li { background: #fff; border-radius: 999px; padding: 6px 12px; }
-  .qrcard ol b { font-family: var(--latin); color: var(--ink); margin-right: 4px; }
+  .qrcard ol { margin: 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.5; color: #5a6290; max-width: 26em; }
+  .qrcard .status.ok { color: #1f7a3a; } .qrcard .status.err { color: #b3261e; }
   .side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
   .status { font-size: 15px; line-height: 1.5; }
   .status.ok { color: var(--ok); } .status.err { color: var(--warn); }
@@ -185,32 +223,34 @@
   .hint { color: var(--mute); font-size: 14px; margin: 0; line-height: 1.5; }
   .bye { color: var(--mute); font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
 
-  /* ---------- 홈 화면: 타이틀을 화면 가득 ---------- */
-  .home { position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer; display: grid;
-          grid-template-columns: minmax(0, 1fr) auto minmax(0, .8fr); gap: 0;
+  /* ---------- 홈 화면: 가운데 큰 GRACE, 뒤에 지금 내 모습이 은은하게 ---------- */
+  .home { position: fixed; inset: 0; z-index: 5; background: var(--bg); cursor: pointer; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden;
           padding-block: max(28px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-bottom, 0px));
-          padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
-  .home-main { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; padding-right: 32px; }
-  .home-title { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: 0;
-                font-size: min(22vh, 15vw); line-height: .9; letter-spacing: .005em; }
-  .home-title span { display: block; }
-  .home-sub { margin: 22px 0 0; font-size: 22px; color: var(--mute); }
-  .home-sub b { color: var(--ink); font-weight: 700; }
-  .home-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 14px; margin-top: 28px; border: 0; border-radius: 999px;
-              padding: 22px 34px; background: var(--ink); color: #fff; font-size: 22px; font-weight: 700; cursor: pointer; }
+          padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)); }
+  .home-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: var(--home-filter); opacity: var(--home-opacity); mix-blend-mode: var(--home-blend); pointer-events: none; }
+  .home-bg.mirror-flip { transform: scaleX(-1); }
+  .home::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(70% 70% at 50% 50%, transparent 40%, var(--vignette, rgba(20,30,80,.55))); }
+  .home > *:not(.home-bg) { position: relative; z-index: 1; }
+  .home-top, .home-bottom { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 24px; }
+  .home-top { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+  .home-top .label:last-child, .home-bottom > :last-child { justify-self: end; text-align: right; }
+  .home-bottom { border-top: 1px solid var(--line); padding-top: 18px; }
+  .home-center { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 0; }
+  .home-center .kicker { font-size: clamp(22px, 4.4vh, 44px); color: var(--ink); }
+  .home-title { font-family: var(--display); font-weight: 400; text-transform: uppercase; margin: .02em 0 0; color: var(--ink);
+                font-size: min(40vh, 26vw); line-height: .82; letter-spacing: .005em; }
+  .home-verse { margin: 26px 0 0; font-family: var(--serif-ko); font-size: clamp(18px, 2.8vh, 26px); color: var(--ink); }
+  .home-ref { margin: 8px 0 0; }
+  .home-cta { justify-self: center; display: inline-flex; align-items: center; gap: 14px; border: 1px solid var(--btn); border-radius: 999px;
+              padding: 18px 34px; background: var(--btn); color: var(--on-ink); font-size: 20px; font-weight: 700; cursor: pointer; }
   .home-cta::after { content: "→"; font-family: var(--latin); font-weight: 500; }
-  .home-cta .dot { width: 10px; height: 10px; border-radius: 999px; background: #fff; animation: blink 1.6s ease-in-out infinite; }
+  .home-cta .dot { width: 9px; height: 9px; border-radius: 999px; background: var(--on-ink); animation: blink 1.6s ease-in-out infinite; }
   @keyframes blink { 50% { opacity: .2; } }
-  .band { background: var(--ink); color: #fff; border-radius: 4px; width: 64px; display: flex; flex-direction: column; justify-content: space-around; align-items: center; padding: 22px 0; }
-  .band span { writing-mode: vertical-rl; font-family: var(--display); font-size: 22px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
-  .home-art { position: relative; min-width: 0; overflow: hidden; }
-  .mock { position: absolute; width: 44%; aspect-ratio: 1 / 3; background: #fff; padding: 5% 5% 0; display: grid; grid-template-rows: repeat(4, 1fr) .9fr; gap: 3.5%;
-          box-shadow: 0 30px 50px -25px rgba(0,0,0,.35); }
-  .mock i { background: var(--soft); display: grid; place-items: center; font-style: normal; font-family: var(--latin); font-weight: 600; font-size: 12px; letter-spacing: .1em; color: #b8b8b8; }
-  .mock b { font-family: var(--display); font-weight: 400; font-size: clamp(14px, 1.6vw, 22px); line-height: 1; align-self: center; text-transform: uppercase; }
-  .mock.a { left: 12%; top: 6%; transform: rotate(-8deg); }
-  .mock.b { left: 46%; top: 16%; transform: rotate(6deg); }
-  .mock.b i { background: #e4e4e4; }
+  @media (max-width: 900px), (orientation: portrait) {
+    .home-title { font-size: min(30vw, 28vh); }
+    .home-bottom { grid-template-columns: 1fr; justify-items: center; gap: 12px; }
+    .home-bottom > :first-child, .home-bottom > :last-child { display: none; }
+  }
   .back { align-self: flex-start; border: 0; background: transparent; padding: 6px 0; font-size: 15px; color: var(--mute); cursor: pointer; }
   @media (max-width: 900px), (orientation: portrait) {
     .home { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
@@ -219,9 +259,6 @@
     .home-head { grid-row: 1; }
     .home-art { grid-row: 2; margin: 24px 0; }
     .home-foot { grid-row: 3; }
-    .band { display: none; }
-    .mock { width: auto; height: 88%; }
-    .mock.a { left: 20%; top: 2%; } .mock.b { left: 48%; top: 8%; }
   }
 
   /* ---------- 프레임 고르기 (STEP 01) ---------- */
@@ -229,11 +266,11 @@
           padding-block: max(28px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-bottom, 0px));
           padding-left: max(36px, env(safe-area-inset-left, 0px)); padding-right: max(36px, env(safe-area-inset-right, 0px)); }
   .pick-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
-  .pick-head h2 { margin: 8px 0 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
+  .pick-head h2 { margin: 8px 0 0; font-family: var(--serif-ko); font-size: 34px; font-weight: 700; letter-spacing: -0.03em; }
   .cards { display: grid; grid-template-columns: repeat(var(--cards, 4), minmax(0, 1fr)); gap: 18px; min-height: 0; }
-  .card { border: 0; background: var(--card); border-radius: 26px; padding: 18px 18px 16px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px;
+  .card { border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 6px; padding: 18px 18px 16px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 14px;
           cursor: pointer; min-height: 0; text-align: left; transition: transform .15s ease; }
-  .card[aria-pressed="true"] { box-shadow: inset 0 0 0 3px var(--ink); }
+  .card[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--btn); background: rgba(255,255,255,.12); }
   .card:active { transform: scale(.98); }
   .fbox { container-type: size; min-height: 0; display: grid; place-items: center; }
   .fprev { position: relative; width: min(100cqw, calc(var(--ar) * 100cqh)); aspect-ratio: var(--ar); background: var(--fbg); box-shadow: 0 18px 30px -20px rgba(0,0,0,.45), 0 0 0 1px rgba(0,0,0,.06); }
@@ -241,7 +278,7 @@
   .fprev b { position: absolute; height: 5%; background: var(--fink); border-radius: 1px; }
   .fprev em { position: absolute; height: 2.4%; background: var(--fsub); border-radius: 1px; }
   .card-meta { display: flex; justify-content: space-between; align-items: baseline; }
-  .card-meta strong { font-size: 19px; font-weight: 700; }
+  .card-meta strong { font-family: var(--serif-ko); font-size: 19px; font-weight: 700; }
   .pick-foot { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
   .pick-foot .cta { margin-top: 0; min-width: 320px; }
   @media (max-width: 900px), (orientation: portrait) {
@@ -251,9 +288,9 @@
 
   /* ---------- 설정 ---------- */
   .gear { position: fixed; z-index: 8; right: max(14px, env(safe-area-inset-right, 0px)); bottom: max(14px, env(safe-area-inset-bottom, 0px));
-          background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
+          background: var(--btn); color: var(--on-ink); border: 0; border-radius: 999px; padding: 10px 18px; font-size: 14px; cursor: pointer; }
   .corner { position: fixed; z-index: 8; top: 0; right: 0; width: 72px; height: 72px; background: transparent; border: 0; }
-  dialog { border: 0; border-radius: 28px; background: var(--card); color: var(--ink); width: min(520px, calc(100% - 32px)); padding: 28px;
+  dialog { border: 1px solid var(--line); border-radius: 6px; background: var(--bg-deep); color: var(--ink); width: min(520px, calc(100% - 32px)); padding: 28px;
            box-shadow: 0 40px 80px rgba(0,0,0,.25); -webkit-user-select: text; user-select: text; }
   dialog::backdrop { background: rgba(0,0,0,.4); }
   dialog form { display: grid; gap: 14px; }
@@ -262,8 +299,8 @@
   dialog label.check { display: flex; align-items: center; gap: 10px; color: var(--ink); font-size: 15px; }
   dialog input[type=text], dialog input[type=password], dialog input[type=number], dialog select {
     font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); }
-  dialog input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--ink); }
-  dialog .save { background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; }
+  dialog input[type=checkbox] { width: 22px; height: 22px; accent-color: #fff; }
+  dialog .save { background: var(--btn); color: var(--on-ink); border: 0; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; }
 
   /* 세로 화면(세로로 세운 태블릿): 카메라 위, 패널 아래 */
   @media (max-width: 900px), (orientation: portrait) {
@@ -272,18 +309,16 @@
     .stage { aspect-ratio: var(--ratio, 1.5); max-height: 48vh; width: 100%; }
     .topline { display: none; }
     .app.done, .app.select { grid-template-rows: minmax(0, 1fr); }
-    #selectView { grid-template-columns: minmax(0, 180px) minmax(0, 1fr); gap: 18px; }
-    #selPreview { align-self: start; }
-    .takes { --tc: 2; }
-    .brand h1 { font-size: 52px; }
+    #selectView { grid-template-columns: var(--pvw, 180px) minmax(0, 1fr); gap: 18px; }
+    #selectView.stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: var(--pvh, 240px) minmax(0, 1fr); }
+    .brand h1 { font-size: 46px; }
     .panel { gap: 20px; }
     #idleView .guide { display: none; }
     #shootView .steps { max-width: min(400px, calc(var(--n, 4) * 110px)); }
     #idleView .lead { display: none; }
     .chips { flex-wrap: nowrap; overflow-x: auto; }
     .lead { font-size: 28px; }
-    #doneView { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); gap: 20px; }
-    .strip { height: auto; width: 100%; max-height: none; }
+    #doneView { grid-template-columns: var(--pvw, 200px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 20px; }
     .side { grid-column: 1 / -1; }
     .side .steps { max-width: 440px; }
   }
@@ -295,32 +330,33 @@
 
 
 <section class="home" id="home" aria-label="홈 화면">
-  <div class="home-main">
-    <div class="home-head">
-      <div class="topline" style="margin-bottom:22px"><span class="label">Photo Booth ✦ 01—04</span><span class="label" id="homeDate"></span></div>
-      <h1 class="home-title" id="homeTitle"></h1>
+  <video class="home-bg" id="homeVideo" autoplay playsinline muted aria-hidden="true"></video>
+  <div class="home-top"><span class="tag" id="homeSub">성도교제의 밤</span><span class="label">Photo Booth</span><span class="label" id="homeDate"></span></div>
+  <div class="home-center">
+    <p class="kicker" id="homeKicker">Here by</p>
+    <div style="position:relative">
+      <h1 class="home-title" id="homeTitle">Grace</h1>
+      <div class="stars" aria-hidden="true"><i style="--s:26px;left:4%;top:12%"></i><i style="--s:18px;left:-2%;top:46%"></i><i style="--s:30px;right:6%;top:-6%"></i><i style="--s:20px;right:-1%;top:58%"></i><i style="--s:22px;left:46%;bottom:-12%"></i></div>
     </div>
-    <div class="home-foot">
-      <p class="home-sub"><b id="homeSub">성도교제의 밤</b> · 은혜로 여기까지, 오늘을 네 컷으로</p>
-      <button class="home-cta" id="homeBtn" type="button"><span class="dot" aria-hidden="true"></span>터치해서 시작</button>
-    </div>
+    <p class="home-verse" id="homeVerse">여호와께서 여기까지 우리를 도우셨다</p>
+    <p class="tag home-ref" id="homeRef">사무엘상 7:12</p>
   </div>
-  <div class="band" aria-hidden="true"><span>Shoot 4 cuts</span><span>Retake</span><span>Scan to save</span><span>Keep the grace</span></div>
-  <div class="home-art" aria-hidden="true">
-    <div class="mock a"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle">Here by Grace</b></div>
-    <div class="mock b"><i>01</i><i>02</i><i>03</i><i>04</i><b id="mockTitle2">Here by Grace</b></div>
+  <div class="home-bottom">
+    <span class="tag">사진 모양 고르기 · 촬영 · QR</span>
+    <button class="home-cta" id="homeBtn" type="button"><span class="dot" aria-hidden="true"></span>눌러서 시작하기</button>
+    <span class="tag">휴대폰으로 바로 받아요</span>
   </div>
 </section>
 
 <section class="pick" id="pick" hidden aria-label="프레임 고르기">
   <div class="pick-head">
-    <div><span class="label">Step 01 ✦ Frame</span><h2>프레임을 골라 주세요</h2></div>
+    <div><span class="tag">1단계</span><h2>사진 모양을 골라 주세요</h2></div>
     <div class="chips" id="frameChips" role="group" aria-label="프레임 색"></div>
   </div>
   <div class="cards" id="layoutCards" role="group" aria-label="레이아웃"></div>
   <div class="pick-foot">
-    <button class="back" id="pickBack" type="button">← 처음 화면</button>
-    <button class="cta" id="pickNext" type="button">이 프레임으로 촬영</button>
+    <button class="back" id="pickBack" type="button">← 처음으로</button>
+    <button class="cta" id="pickNext" type="button">다음</button>
   </div>
 </section>
 
@@ -350,19 +386,19 @@
   </div></section>
 
   <aside class="panel">
-    <div class="topline"><span class="label" id="cutLabel">Photo Booth ✦ 01—04</span><span class="label" id="dateLabel"></span></div>
     <header class="brand">
-      <h1 id="title">Here by Grace</h1>
+      <p class="kicker" id="brandKicker">Here by</p>
+      <h1 id="brandTitle">Grace</h1>
       <p id="subtitle">성도교제의 밤</p>
     </header>
 
     <!-- 처음 화면 -->
     <div class="view" id="idleView">
-      <button class="back" id="backBtn" type="button">← 프레임 다시 고르기</button>
-      <p class="lead">은혜로 여기까지,<br>오늘을 사진으로 남겨요<small><b id="secs">5</b>초 간격으로 <span id="nWord">네</span> 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
+      <button class="back" id="backBtn" type="button">← 사진 모양 다시 고르기</button>
+      <p class="lead">자리를 잡고<br>촬영을 시작해 주세요<small><b id="secs">5</b>초 간격으로 <span id="nWord">네</span> 번 촬영해요. 화면 속 안내에 맞춰 포즈를 취해 주세요.</small></p>
       <div class="steps" id="thumbs"></div>
-      <div class="opt"><span class="label">Step 02 ✦ Filter</span><div class="chips" id="lookChips" role="group" aria-label="필터"></div></div>
-      <div class="opt"><span class="label">Sticker ✦ 눌러서 추가, 화면에서 끌어서 옮기기</span>
+      <div class="opt"><span class="tag">필터</span><div class="chips" id="lookChips" role="group" aria-label="필터"></div></div>
+      <div class="opt"><span class="tag">스티커 · 붙인 뒤 화면에서 끌어서 옮길 수 있어요</span>
         <div class="tray" id="tray" role="group" aria-label="스티커"></div>
         <div class="stk-tools"><button id="stkSmaller" type="button">작게</button><button id="stkBigger" type="button">크게</button><button id="stkDel" type="button">지우기</button><button id="stkClear" type="button">모두 지우기</button></div>
       </div>
@@ -385,9 +421,9 @@
     <!-- 결과 -->
     <!-- 여러 장 중 고르기 -->
     <div class="view" id="selectView" hidden>
-      <img id="selPreview" class="strip" alt="고른 사진으로 만든 미리보기">
+      <div class="pv"><img id="selPreview" alt="고른 사진으로 만든 미리보기"></div>
       <div class="sel-side">
-        <div><span class="label" id="selLabel">Pick 4 of 6</span><h2 id="selTitle">마음에 드는 사진을 골라 주세요</h2>
+        <div><span class="tag" id="selLabel">6장 중 4장</span><h2 id="selTitle">마음에 드는 사진을 골라 주세요</h2>
           <p class="hint" id="selHint">누른 순서대로 프레임에 들어가요. 다시 누르면 빠져요.</p></div>
         <div class="takes" id="takes" role="group" aria-label="찍은 사진"></div>
         <button class="cta" id="selDone" type="button">이 사진으로 완성</button>
@@ -396,16 +432,13 @@
     </div>
 
     <div class="view" id="doneView" hidden>
-      <img id="resultImg" class="strip" alt="완성된 네컷 사진">
+      <div class="pv"><img id="resultImg" alt="완성된 사진"></div>
       <div class="qrcard">
-        <span class="label">Scan to save</span>
         <h2 id="qrTitle">사진을 올리는 중이에요</h2>
         <div class="qrframe"><div id="qr"><div class="spinner" aria-hidden="true"></div></div></div>
         <div class="status" id="status" aria-live="polite"></div>
         <ol id="qrSteps" hidden>
-          <li><b>01</b>카메라 켜기</li>
-          <li><b>02</b>QR 비추기</li>
-          <li><b>03</b>사진 저장</li>
+          <li>휴대폰 카메라로 QR을 비춘 뒤, 열리는 화면에서 사진을 저장하세요</li>
         </ol>
       </div>
       <div class="side">
@@ -428,6 +461,7 @@
   <form method="dialog" id="settingsForm">
     <h2>Settings</h2>
     <label>행사 코드 (사진 업로드 비밀번호) <input id="setCode" type="password" autocomplete="off"></label>
+    <label>화면 테마 <select id="setTheme"><option value="blue">블루</option><option value="mono">흑백</option><option value="forest">숲</option></select></label>
     <label>카메라 <select id="camSel"></select></label>
     <label>카운트다운(초) <input id="setCount" type="number" min="1" max="15" inputmode="numeric"></label>
     <label class="check"><input id="setMirror" type="checkbox"> 좌우 반전 (셀카처럼)</label>
@@ -466,17 +500,30 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, pickMore: C.pickMore !== false, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, pickMore: C.pickMore !== false, theme: C.theme || "blue", uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
 
-  $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
   const poseOf = (i) => C.poses[i] || "자유 포즈";
+  // ---- 화면 테마: config.theme → 설정 → 주소 뒤 ?theme=blue|mono|forest (미리 보기용, 이 기기에 기억) ----
+  const THEMES = { blue: "블루", mono: "흑백", forest: "숲" };
+  { const q = new URLSearchParams(location.search).get("theme"); if (q && THEMES[q]) { S.theme = q; store.set(S); } }
+  if (!THEMES[S.theme]) S.theme = "blue";
+  function applyTheme() {
+    document.documentElement.dataset.theme = S.theme;
+    const tc = { blue: "#26398b", mono: "#0e0e0e", forest: "#2c3122" }[S.theme];
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", tc);
+  }
+  function defFrame() { return FRAMES[C.frame] && C.frame !== "auto" ? C.frame : (THEME_FRAME[S.theme] || "blue"); }
+  applyTheme();
   const two = (n) => String(n).padStart(2, "0");
-  { const d = new Date(), t = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); $("dateLabel").textContent = t; $("homeDate").textContent = t; }
-  // 홈 타이틀: 단어마다 한 줄
-  for (const w of String(C.title || "Here by Grace").split(/\s+/)) { const sp = document.createElement("span"); sp.textContent = w; $("homeTitle").appendChild(sp); }
+  { const d = new Date(), t = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); $("homeDate").textContent = t; }
+  // 제목: 마지막 단어를 크게(GRACE), 앞부분은 띄운 소문자 라벨(HERE BY)
+  const titleWords = String(C.title || "Here by Grace").trim().split(/\s+/);
+  const titleBig = titleWords.pop(), titleKick = titleWords.join(" ");
+  $("homeTitle").textContent = titleBig; $("homeKicker").textContent = titleKick;
+  $("brandTitle").textContent = titleBig; $("brandKicker").textContent = titleKick;
   $("homeSub").textContent = C.subtitle || "";
-  $("mockTitle").textContent = $("mockTitle2").textContent = C.title || "Here by Grace";
+  if (C.homeVerse) { $("homeVerse").textContent = C.homeVerse.text; $("homeRef").textContent = C.homeVerse.ref; }
 
   // ---- 카메라 ----
   const video = $("video");
@@ -489,13 +536,13 @@
         video: { deviceId: S.deviceId ? { exact: S.deviceId } : undefined, facingMode: S.deviceId ? undefined : "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
-      video.srcObject = stream;
+      video.srcObject = stream; $("homeVideo").srcObject = stream; $("homeVideo").play().catch(() => {});
       await video.play().catch(() => {});
     } catch (e) {
       $("nocam").hidden = false;
       $("nocamMsg").textContent = "카메라를 켤 수 없어요. 카메라 권한을 허용하고 새로고침해 주세요. (" + (e.name || e) + ")";
     }
-    video.classList.toggle("mirror", !!S.mirror);
+    video.classList.toggle("mirror", !!S.mirror); $("homeVideo").classList.toggle("mirror-flip", !!S.mirror);
   }
 
   // ---- 소리 / 화면 켜 두기 ----
@@ -579,11 +626,16 @@
     soft:  { name: "뽀샤시", css: "brightness(1.08) contrast(.9) saturate(1.06)", b: 1.08, c: .9, s: 1.06, warm: 4, bloom: .3 },
     mono:  { name: "흑백", css: "grayscale(1) contrast(1.12) brightness(1.03)", b: 1.03, c: 1.12, s: 0 },
     film:  { name: "필름", css: "contrast(.94) saturate(.82) sepia(.2) brightness(1.03)", b: 1.03, c: .94, s: .82, warm: 14, fade: 22, grain: 12, vignette: .35 },
-    grace: { name: "은혜의 빛", css: "brightness(1.07) contrast(.94) saturate(1.08) sepia(.16)", b: 1.07, c: .94, s: 1.08, warm: 16, bloom: .38, rays: true },
+    grace: { name: "따뜻한 빛", css: "brightness(1.07) contrast(.94) saturate(1.08) sepia(.16)", b: 1.07, c: .94, s: 1.08, warm: 16, bloom: .38, rays: true },
   };
-  const FRAMES = { white: { name: "화이트", bg: "#ffffff", ink: "#111111", sub: "#8a8a8a", side: "#b5b5b5", empty: "#e8e9ee" },
-                   black: { name: "블랙",  bg: "#111111", ink: "#ffffff", sub: "#9a9a9a", side: "#555555", empty: "#2a2a2a" } };
-  let look = LOOKS[C.look] ? C.look : "none", frame = FRAMES[C.frame] ? C.frame : "white";
+  const FRAMES = { white: { name: "흰색", bg: "#ffffff", ink: "#111111", sub: "#8a8a8a", side: "#b5b5b5", empty: "#e8e9ee" },
+                   black: { name: "검은색",  bg: "#111111", ink: "#ffffff", sub: "#9a9a9a", side: "#555555", empty: "#2a2a2a" },
+                   blue:  { name: "파란색",  bg: "#26398b", ink: "#ffffff", sub: "#c5cdee", side: "#5a6cb8", empty: "#33489e" },
+                   olive: { name: "올리브",  bg: "#2c3122", ink: "#f4ea6c", sub: "#c9c27a", side: "#6b6a3a", empty: "#3a4030" } };
+  // 테마별 기본 프레임 색과 사진 속 제목 글꼴
+  const THEME_FRAME = { blue: "blue", mono: "black", forest: "olive" };
+  const THEME_FONT = { blue: "Oranienbaum", mono: "Oranienbaum", forest: "'Cinzel Decorative'" };
+  let look = LOOKS[C.look] ? C.look : "none", frame = defFrame();
 
   function applyLook(c, key) {
     const L = LOOKS[key]; if (!L || key === "none") return;
@@ -619,21 +671,13 @@
   function graceLight(ctx, w, h) {
     ctx.save(); ctx.globalCompositeOperation = "screen";
     const glow = ctx.createRadialGradient(w * .3, -h * .05, 0, w * .3, -h * .05, h * 1.05);
-    glow.addColorStop(0, "rgba(255,226,160,.55)"); glow.addColorStop(1, "rgba(255,226,160,0)");
+    glow.addColorStop(0, "rgba(255,226,160,.42)"); glow.addColorStop(1, "rgba(255,226,160,0)");
     ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
-    for (const [x0, wid, a] of [[.12, .07, .26], [.36, .06, .2], [.6, .05, .14]]) {
+    for (const [x0, wid, a] of [[.12, .08, .16], [.38, .06, .11]]) {
       const g = ctx.createLinearGradient(w * x0, 0, w * (x0 + wid), 0);
       g.addColorStop(0, "rgba(255,240,205,0)"); g.addColorStop(.5, `rgba(255,240,205,${a})`); g.addColorStop(1, "rgba(255,240,205,0)");
       ctx.fillStyle = g; ctx.beginPath();
       ctx.moveTo(w * x0, 0); ctx.lineTo(w * (x0 + wid), 0); ctx.lineTo(w * (x0 + wid + .32), h); ctx.lineTo(w * (x0 + .32), h); ctx.closePath(); ctx.fill();
-    }
-    ctx.restore();
-    ctx.save(); ctx.fillStyle = "rgba(255,255,255,.9)";
-    for (let k = 0; k < 9; k++) {
-      const x = w * (.05 + Math.random() * .9), y = h * (.04 + Math.random() * .3), r = w * (.006 + Math.random() * .012);
-      ctx.globalAlpha = .5 + Math.random() * .5;
-      ctx.beginPath(); ctx.moveTo(x, y - r * 2.2); ctx.quadraticCurveTo(x, y, x + r * 2.2, y); ctx.quadraticCurveTo(x, y, x, y + r * 2.2);
-      ctx.quadraticCurveTo(x, y, x - r * 2.2, y); ctx.quadraticCurveTo(x, y, x, y - r * 2.2); ctx.fill();
     }
     ctx.restore();
   }
@@ -651,7 +695,7 @@
     };
     mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
     mk($("frameChips"), FRAMES, frame, (k) => { frame = k; renderChips(); renderCards(); }, true);
-    $("frameNow").textContent = "프레임: " + LAY().name + " · " + (FRAMES[frame] || FRAMES.white).name + " (" + N() + "컷)";
+    $("frameNow").textContent = LAY().name + " · " + (FRAMES[frame] || FRAMES.white).name + " · " + (totalTakes() > N() ? totalTakes() + "장 찍고 " + N() + "장 고르기" : N() + "장 촬영");
   }
   // 프레임 고르기 카드: 칸 배치를 그대로 축소해서 보여 줌
   function renderCards() {
@@ -666,9 +710,9 @@
       inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .36, L.h)};width:${pc((right - left) * .3, L.w)};height:${pc(A * .06, L.h)}"></em>`;
       inner += `<em style="left:${pc(left, L.w)};top:${pc(L.h - A * .22, L.h)};width:${pc((right - left) * .7, L.w)};height:${pc(A * .05, L.h)}"></em>`;
       bt.innerHTML = `<div class="fbox"><div class="fprev" style="--ar:${(L.w / L.h).toFixed(4)};--fbg:${F.bg};--fslot:${F.empty};--fink:${F.ink};--fsub:${F.sub}">${inner}</div></div>`
-        + `<div class="card-meta"><strong></strong><span class="label"></span></div>`;
+        + `<div class="card-meta"><strong></strong><span class="tag"></span></div>`;
       bt.querySelector("strong").textContent = L.name;
-      bt.querySelector(".label").textContent = L.slots.length + (L.slots.length > 1 ? " cuts" : " cut");
+      bt.querySelector(".tag").textContent = L.slots.length + "장";
       bt.setAttribute("aria-label", L.name + ", " + L.slots.length + "컷");
       bt.onclick = () => { layout = k; applyLayout(); renderCards(); renderChips(); };
       box.appendChild(bt);
@@ -689,7 +733,6 @@
     document.documentElement.style.setProperty("--ratio", slotRatio().toFixed(4));
     document.documentElement.style.setProperty("--n", n);
     $("nWord").textContent = KWORD[totalTakes()] || totalTakes();
-    $("cutLabel").textContent = "Photo Booth ✦ 01—" + two(n);
     renderThumbs();
   }
   function previewLook() {
@@ -776,7 +819,7 @@
   async function takeOne(i, into = shots, total = N()) {
     liveIndex = i; renderThumbs();
     $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/" + two(total); $("chipPose").textContent = poseOf(i);
-    $("poseNo").textContent = "Cut " + two(i + 1) + " / " + two(total); $("poseText").textContent = poseOf(i);
+    $("poseNo").textContent = (i + 1) + "번째 / " + total + "장"; $("poseText").textContent = poseOf(i);
     showRing("준비!", true); await sleep(900);
     for (let s = S.countdown; s > 0; s--) { showRing(s); beep(660, 0.08); await sleep(1000); }
     $("count").hidden = true;
@@ -812,6 +855,40 @@
     pickVerse();
     showSelect();
   }
+  // 결과·고르기 화면: 사진 미리보기 칸 너비를 레이아웃 비율에 맞춰 계산
+  const isPortrait = () => matchMedia("(max-width: 900px), (orientation: portrait)").matches;
+  function fitPreview(view) {
+    const el = $(view); if (el.hidden) return;
+    el.style.removeProperty("--pvw"); el.style.removeProperty("--pvh");
+    const ratio = LAY().w / LAY().h, port = isPortrait();
+    el.classList.toggle("stack", view === "selectView" && port && ratio > 1);
+    if (el.classList.contains("stack")) {   // 세로 화면 + 가로로 긴 사진: 미리보기를 위에
+      const r0 = el.getBoundingClientRect();
+      el.style.setProperty("--pvh", Math.round(Math.min(r0.width / ratio, r0.height * .38)) + "px"); return;
+    }
+    const r = el.getBoundingClientRect();
+    let h = r.height;
+    if (view === "doneView" && port) h = r.height - $("doneView").querySelector(".side").getBoundingClientRect().height - 20;
+    const cap = view === "doneView" ? (port ? .5 : .38) : (port ? .42 : .45);
+    el.style.setProperty("--pvw", Math.round(Math.max(120, Math.min(ratio * h, r.width * cap))) + "px");
+  }
+  // 고르기 화면: 남는 공간에 사진 칸이 가장 크게 들어가는 열 수를 찾음
+  function fitTakes() {
+    const box = $("takes"); if ($("selectView").hidden || !takes.length) return;
+    const r = box.getBoundingClientRect(), gap = 16, pad = 12, n = takes.length, a = slotRatio();
+    const W = r.width - pad, H = r.height - pad;
+    let best = { w: 0, cols: 1 };
+    for (let cols = 1; cols <= n; cols++) {
+      const rows = Math.ceil(n / cols);
+      const w = Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) * a);
+      if (w > best.w) best = { w, cols };
+    }
+    const w = Math.floor(best.w), h = Math.floor(best.w / a);
+    box.style.gridTemplateColumns = `repeat(${best.cols}, ${w}px)`;
+    for (const t of box.children) { t.style.width = w + "px"; t.style.height = h + "px"; }
+  }
+  window.addEventListener("resize", () => { fitPreview("doneView"); fitPreview("selectView"); fitTakes(); });
+
   function showSelect() {
     liveSrc = "shots"; show("select");
     const box = $("takes"); box.innerHTML = "";
@@ -826,9 +903,8 @@
       };
       box.appendChild(b);
     });
-    const portrait = matchMedia("(max-width: 900px), (orientation: portrait)").matches;
-    $("takes").style.setProperty("--tc", portrait || takes.length <= 4 ? 2 : 3);
     updateSelect(); bumpSelIdle();
+    requestAnimationFrame(() => { fitPreview("selectView"); fitTakes(); });
   }
   function updateSelect() {
     const n = N();
@@ -838,7 +914,7 @@
       b.querySelector("b").textContent = at >= 0 ? String(at + 1) : two(i + 1);
       b.setAttribute("aria-label", (i + 1) + "번째 사진" + (at >= 0 ? ", " + (at + 1) + "번 칸에 들어감" : ""));
     });
-    $("selLabel").textContent = "Pick " + n + " of " + takes.length;
+    $("selLabel").textContent = takes.length + "장 중 " + n + "장 고르기";
     $("selTitle").textContent = picks.length === n ? "이대로 완성할까요?" : "사진 " + (n - picks.length) + "장을 더 골라 주세요";
     $("selDone").disabled = picks.length !== n;
     // 미리보기: 고른 사진으로 프레임을 작게 그려 봄
@@ -904,31 +980,33 @@
     const left = Math.min(...L.slots.map(s => s.x)), right = Math.max(...L.slots.map(s => s.x + s.w));
     const top = Math.max(...L.slots.map(s => s.y + s.h)), A = H - top;
     const px = (r) => Math.round(A * r);
-    ctx.fillStyle = F.ink; ctx.textBaseline = "alphabetic";
-    // 제목: 폭을 넘지 않게
-    let ts = px(.24); ctx.textAlign = "left"; ctx.font = `${ts}px Anton, 'Arial Narrow', sans-serif`;
-    const title = String(C.title || "").toUpperCase();
-    while (ctx.measureText(title).width > (right - left) * .8 && ts > 20) { ts -= 2; ctx.font = `${ts}px Anton, 'Arial Narrow', sans-serif`; }
-    ctx.fillText(title, left, H - px(.42));
-    ctx.fillStyle = F.sub; ctx.font = `500 ${px(.064)}px 'Noto Sans KR', sans-serif`;
-    ctx.fillText(C.subtitle || "", left, H - px(.3));
-    ctx.textAlign = "right"; ctx.font = `600 ${px(.048)}px Inter, sans-serif`;
-    ctx.fillText(String(C.footer || "").toUpperCase() + "  ✦", right, H - px(.3));
+    ctx.fillStyle = F.ink; ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
+    // 띄운 글자 라벨 (HERE BY) — letterSpacing이 없는 브라우저는 한 글자씩
+    const spaced = (txt, x, y, gap) => {
+      if ("letterSpacing" in ctx) { ctx.letterSpacing = gap + "px"; ctx.fillText(txt, x, y); ctx.letterSpacing = "0px"; return; }
+      for (const ch of txt) { ctx.fillText(ch, x, y); x += ctx.measureText(ch).width + gap; }
+    };
+    const words = String(C.title || "").trim().toUpperCase().split(/\s+/), big = words.pop(), kick = words.join(" ");
+    ctx.font = `500 ${px(.06)}px Montserrat, sans-serif`;
+    if (kick) spaced(kick, left, H - px(.74), px(.06) * .32);
+    // 큰 제목 (GRACE): 폭을 넘지 않게
+    let ts = px(.34); ctx.font = `${THEME_FONT[S.theme] === "'Cinzel Decorative'" ? "700 " : ""}${ts}px ${THEME_FONT[S.theme] || "Oranienbaum"}, 'Bodoni 72', Didot, serif`;
+    while (ctx.measureText(big).width > (right - left) * .62 && ts > 20) { ts -= 2; ctx.font = `${THEME_FONT[S.theme] === "'Cinzel Decorative'" ? "700 " : ""}${ts}px ${THEME_FONT[S.theme] || "Oranienbaum"}, 'Bodoni 72', Didot, serif`; }
+    ctx.fillText(big, left - ts * .02, H - px(.42));
+    ctx.fillStyle = F.sub; ctx.font = `500 ${px(.06)}px 'Noto Sans KR', sans-serif`;
+    ctx.fillText(C.subtitle || "", left, H - px(.27));
+    ctx.textAlign = "right"; ctx.font = `500 ${px(.045)}px Montserrat, sans-serif`;
+    ctx.fillText(String(C.footer || ""), right, H - px(.27));
     if (verseNow) {   // 은혜 말씀 한 줄 (길면 글자를 줄임)
-      ctx.fillStyle = F.ink; ctx.globalAlpha = .75;
-      ctx.textAlign = "right"; ctx.font = `600 ${px(.042)}px Inter, 'Noto Sans KR', sans-serif`;
+      ctx.fillStyle = F.ink; ctx.globalAlpha = .8;
+      ctx.textAlign = "right"; ctx.font = `500 ${px(.04)}px Montserrat, 'Noto Sans KR', sans-serif`;
       const refW = ctx.measureText(verseNow.ref).width;
-      ctx.fillText(verseNow.ref, right, H - px(.16));
-      const line = "“" + verseNow.text + "”", room = right - left - refW - px(.05);
-      let size = px(.052); ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`;
-      while (ctx.measureText(line).width > room && size > 14) { size--; ctx.font = `400 ${size}px 'Noto Sans KR', sans-serif`; }
-      ctx.textAlign = "left"; ctx.fillText(line, left, H - px(.16)); ctx.globalAlpha = 1;
+      ctx.fillText(verseNow.ref, right, H - px(.13));
+      const line = verseNow.text, room = right - left - refW - px(.05);
+      let size = px(.05); ctx.font = `600 ${size}px 'Noto Serif KR', serif`;
+      while (ctx.measureText(line).width > room && size > 14) { size--; ctx.font = `600 ${size}px 'Noto Serif KR', serif`; }
+      ctx.textAlign = "left"; ctx.fillText(line, left, H - px(.13)); ctx.globalAlpha = 1;
     }
-    // 오른쪽 여백 세로 글씨
-    const sideFont = Math.max(14, Math.round(Math.min((W - right) * .28, H * .007)));
-    ctx.save(); ctx.translate(right + (W - right) / 2 + sideFont * .35, L.slots[0].y); ctx.rotate(Math.PI / 2);
-    ctx.textAlign = "left"; ctx.fillStyle = F.side; ctx.font = `600 ${sideFont}px Inter, sans-serif`;
-    ctx.fillText("KEEP THE GRACE ALIVE", 0, 0); ctx.restore();
     return c;
   }
 
@@ -940,13 +1018,14 @@
   }
   async function finish() {
     if (!verseNow) pickVerse();
-    await Promise.all(["150px Anton", "600 30px Inter", "500 40px 'Noto Sans KR'", "400 32px 'Noto Sans KR'"].map(f => document.fonts.load(f).catch(() => {})));
+    await Promise.all(["150px Oranienbaum", "700 150px 'Cinzel Decorative'", "500 30px Montserrat", "500 40px 'Noto Sans KR'", "600 32px 'Noto Serif KR'"].map(f => document.fonts.load(f).catch(() => {})));
     const canvas = compose();
     const blob = await new Promise(r => canvas.toBlob(r, "image/jpeg", C.jpegQuality));
     if (current) URL.revokeObjectURL(current.url);
     current = { blob, url: URL.createObjectURL(blob), name: "herebygrace-" + stamp() + ".jpg" };
     $("resultImg").src = current.url;
     renderThumbs(); show("done");
+    requestAnimationFrame(() => fitPreview("doneView"));
     if (S.autoSave && !window.claude) saveLocal();
     upload();
   }
@@ -977,7 +1056,7 @@
       }
       const j = await r.json();
       if (!j.ok || !j.page) throw new Error(j.error || "응답 오류");
-      showQR(j.page); $("qrSteps").hidden = false; setStatus(""); $("qrTitle").textContent = "QR을 찍어 사진을 받아 가세요";
+      showQR(j.page); $("qrSteps").hidden = false; setStatus(""); $("qrTitle").textContent = "QR로 사진을 받아 가세요";
       uploaded = true; bumpIdle();
     } catch (e) {
       console.error(e);
@@ -1039,7 +1118,7 @@
   function reset() { shots = new Array(N()).fill(null); takes = []; picks = []; verseNow = null; liveSrc = "shots"; uploaded = false; renderThumbs(); show("idle"); }
   function showHome(on) {
     $("home").hidden = !on;
-    if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = FRAMES[C.frame] ? C.frame : "white"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
+    if (on) { $("pick").hidden = true; layout = defLayout(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; frame = defFrame(); placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
   }
   function goHome() { if (!busy) showHome(true); }
 
@@ -1083,7 +1162,7 @@
   // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
   function syncGear() { $("gear").hidden = !!S.eventCode; }
   async function openSettings() {
-    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setPick").checked = !!S.pickMore;
+    $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setPick").checked = !!S.pickMore; $("setTheme").value = S.theme;
     $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
     const sel = $("camSel"); sel.innerHTML = "";
     try {
@@ -1105,10 +1184,10 @@
     const camChanged = $("camSel").value && $("camSel").value !== S.deviceId;
     S = Object.assign(S, {
       countdown: Math.min(15, Math.max(1, parseInt($("setCount").value, 10) || 5)),
-      mirror: $("setMirror").checked, pickMore: $("setPick").checked, autoSave: $("setAutoSave").checked,
+      mirror: $("setMirror").checked, pickMore: $("setPick").checked, theme: $("setTheme").value, autoSave: $("setAutoSave").checked,
       uploadUrl: $("setUrl").value.trim(), eventCode: $("setCode").value.trim(), deviceId: $("camSel").value || S.deviceId,
     });
-    store.set(S); $("secs").textContent = S.countdown; $("nWord").textContent = KWORD[totalTakes()] || totalTakes(); syncGear();
+    store.set(S); applyTheme(); frame = defFrame(); renderChips(); renderCards(); $("secs").textContent = S.countdown; $("nWord").textContent = KWORD[totalTakes()] || totalTakes(); syncGear();
     video.classList.toggle("mirror", !!S.mirror);
     if (camChanged) startCamera();
   });

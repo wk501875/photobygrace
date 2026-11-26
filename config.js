@@ -5,6 +5,9 @@ window.BOOTH_CONFIG = {
   // 행사 코드는 여기 적지 말고, 촬영 노트북의 "설정 → 행사 코드"에 입력합니다.
   uploadUrl: "/api/upload",
 
+  // 화면 테마: "blue" 블루, "mono" 흑백, "forest" 숲 (태블릿 설정이나 주소 뒤 ?theme=forest 로도 바꿀 수 있어요)
+  theme: "blue",
+
   // 프레임 하단에 들어갈 글자 (frameImage를 쓰면 무시됩니다)
   title: "Here by Grace",
   subtitle: "성도교제의 밤",
@@ -41,9 +44,9 @@ window.BOOTH_CONFIG = {
   mirror: true,       // 셀카처럼 좌우 반전
 
   // 처음 선택돼 있는 필터와 프레임 (촬영 화면에서 바꿀 수 있어요)
-  // 필터: "none" 원본, "soft" 뽀샤시, "mono" 흑백, "film" 필름, "grace" 은혜의 빛 / 프레임: "white", "black"
+  // 필터: "none" 원본, "soft" 뽀샤시, "mono" 흑백, "film" 필름, "grace" 은혜의 빛 / 프레임: "auto" 테마에 맞춤, "blue", "olive", "white", "black"
   look: "grace",
-  frame: "white",
+  frame: "auto",
 
   // 사진에 붙이는 스티커 (촬영 화면에서 눌러 추가 → 카메라 화면에서 끌어서 옮기기)
   // size: 사진 높이 대비 크기, at: 처음 놓이는 위치 [가로, 세로] (0~1). 그림은 stickers 폴더의 투명 이미지
