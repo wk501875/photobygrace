@@ -7,29 +7,29 @@ export async function onRequestGet() {
 <title>${TITLE} 사진 관리</title>
 ${FONTS}
 <style>
-  :root { color-scheme: dark; --bg:#26398b; --card:rgba(255,255,255,.07); --soft:rgba(255,255,255,.1); --line:rgba(255,255,255,.24); --ink:#fff; --mute:rgba(233,236,250,.72); --danger:#ff8a80; }
+  :root { color-scheme: light; --bg:#FAF8F5; --card:#fff; --soft:#F1EDE7; --line:#E8E3DC; --ink:#2C2A29; --mute:#7A7571; --danger:#b3261e; --green:#4A5D4E; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); min-height:100dvh; font-family:"Pretendard Variable",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  body { margin:0; background:var(--bg); color:var(--ink); min-height:100dvh; font-family:Pretendard,system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
   header { max-width:1200px; margin:0 auto; padding:28px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
            display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; }
-  .label { font-family:"Pretendard Variable",system-ui,sans-serif; font-weight:500; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--mute); }
-  h1 { margin:6px 0 0; font-family:"Oranienbaum",Didot,serif; font-weight:400; font-size:48px; line-height:.9; text-transform:uppercase; }
+  .label { font-family:Pretendard,system-ui,sans-serif; font-weight:500; font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--mute); }
+  h1 { margin:6px 0 0; font-family:"Playfair Display",Georgia,serif; font-weight:700; font-size:40px; letter-spacing:-.02em; }
   .muted { color:var(--mute); font-size:14px; font-variant-numeric:tabular-nums; margin-top:8px; }
   .grow { flex:1; min-width:0; }
-  .refresh { font:inherit; font-size:14px; font-weight:500; padding:10px 18px; border-radius:4px; border:0; background:#fff; color:#26398b; cursor:pointer; }
+  .refresh { font:inherit; font-size:14px; font-weight:600; padding:10px 18px; border-radius:100px; border:0; background:var(--green); color:#fff; cursor:pointer; }
   .grid { max-width:1200px; margin:0 auto; padding:16px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
           display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:8px; }
   .card img { width:100%; aspect-ratio:1/3; object-fit:cover; background:var(--soft); }
-  .meta { font-family:"Pretendard Variable",system-ui,sans-serif; font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
+  .meta { font-family:Pretendard,system-ui,sans-serif; font-size:12px; color:var(--mute); font-variant-numeric:tabular-nums; }
   .row { display:flex; gap:6px; }
   .row a, .row button { flex:1; font:inherit; font-size:13px; padding:8px 6px; border-radius:4px; border:1px solid var(--line); background:transparent; color:var(--ink); text-align:center; text-decoration:none; cursor:pointer; }
   .row button.armed { background:var(--danger); border-color:var(--danger); color:#fff; }
   .empty { grid-column:1/-1; text-align:center; color:var(--mute); padding:60px 0; }
-  a:focus-visible, button:focus-visible { outline:3px solid #fff; outline-offset:2px; }
+  a:focus-visible, button:focus-visible { outline:3px solid #D9A760; outline-offset:2px; }
 </style></head><body>
 <header>
-  <div class="grow"><span class="label">사진 관리</span><h1>${TITLE}</h1><div class="muted" id="sum">불러오는 중…</div></div>
+  <div class="grow"><span class="label">사진 관리</span><h1>Here <em style="font-style:italic;font-weight:400;color:#D9A760">by</em> Grace</h1><div class="muted" id="sum">불러오는 중…</div></div>
   <button class="refresh" id="refresh" type="button">새로고침</button>
 </header>
 <div class="grid" id="grid"></div>

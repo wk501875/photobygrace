@@ -32,35 +32,34 @@ export function safeEqual(a, b) {
 }
 
 // 휴대폰용 페이지 틀 — 촬영 화면과 같은 흑백 에디토리얼
-export const FONTS = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oranienbaum&display=swap">`;
+export const FONTS = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,400&display=swap"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">`;
 
+// 휴대폰 다운로드 화면 — 촬영 화면과 같은 코지 미니멀 (아이보리, 골드, 세이지 그린)
 export function page(title, inner) {
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#26398b">
+<meta name="theme-color" content="#FAF8F5">
 <title>${title}</title>
 ${FONTS}
 <style>
-  :root { color-scheme: dark; --bg:#26398b; --line:rgba(255,255,255,.24); --ink:#fff; --mute:rgba(233,236,250,.72); --on-ink:#26398b; }
-  * { box-sizing:border-box; }
-  body { margin:0; min-height:100dvh; background:var(--bg); color:var(--ink);
-         font-family:"Pretendard Variable",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  :root { --cream:#FAF8F5; --gold:#D9A760; --green:#4A5D4E; --text:#2C2A29; --sub:#7A7571; --border:#E8E3DC; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { min-height:100dvh; background:var(--cream); color:var(--text); font-family:Pretendard,-apple-system,"Apple SD Gothic Neo",sans-serif; }
   main { max-width:480px; margin:0 auto; text-align:center;
-         padding: max(28px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(28px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-  .kicker { font-family:"Pretendard Variable",system-ui,sans-serif; font-weight:500; letter-spacing:.5em; padding-left:.5em; text-transform:uppercase; font-size:15px; margin:0; }
-  h1 { font-family:"Oranienbaum","Bodoni 72",Didot,serif; font-weight:400; font-size:88px; line-height:.85; margin:6px 0 0; text-transform:uppercase; }
-  .sub { color:var(--mute); margin:12px 0 0; font-size:14px; }
-  .photo { display:block; max-height:52dvh; max-width:100%; width:auto; height:auto; margin:24px auto; box-shadow:0 24px 40px -20px rgba(8,14,48,.6); -webkit-touch-callout: default; }
-  .btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; font:inherit; font-size:18px; font-weight:700; padding:18px; border-radius:4px;
-         text-decoration:none; color:var(--on-ink); background:#fff; }
+         padding: max(32px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+  .badge { display:inline-block; font-size:12px; letter-spacing:.15em; color:var(--green); border:1px solid rgba(74,93,78,.3); padding:6px 14px; border-radius:100px; font-weight:600; }
+  h1 { font-family:"Playfair Display",Georgia,serif; font-weight:700; font-size:44px; letter-spacing:-.02em; margin:16px 0 0; }
+  h1 em { font-style:italic; font-weight:400; color:var(--gold); }
+  .photo { display:block; max-height:56dvh; max-width:100%; width:auto; height:auto; margin:26px auto; border-radius:4px; box-shadow:0 20px 45px rgba(0,0,0,.14); -webkit-touch-callout: default; }
+  .btn { display:block; width:100%; font-size:18px; font-weight:600; padding:18px; border-radius:100px; text-decoration:none; color:#fff; background:var(--green); box-shadow:0 10px 25px rgba(74,93,78,.25); }
   .btn:active { transform:scale(.98); }
-  .btn:focus-visible { outline:3px solid #fff; outline-offset:3px; }
-  .tip { color:var(--mute); font-size:13px; line-height:1.7; margin:14px 0 0; }
-  .verse { margin:28px 0 0; padding-top:18px; border-top:1px solid var(--line);  font-size:16px; }
-  .verse span { display:block; margin-top:6px; font-family:"Pretendard Variable",system-ui,sans-serif; font-size:11px; letter-spacing:.24em; color:var(--mute); }
-  .empty { margin:40px 0 10px; color:var(--mute); line-height:1.7; }
+  .tip { color:var(--sub); font-size:13px; line-height:1.7; margin-top:14px; }
+  .verse { margin-top:30px; font-family:"Noto Serif KR",serif; font-size:16px; }
+  .verse span { display:block; margin-top:6px; font-family:Pretendard,sans-serif; font-size:13px; color:var(--sub); }
+  .empty { margin:40px 0 10px; color:var(--sub); line-height:1.7; }
 </style></head><body><main>
+<span class="badge">2026 성도교제의 밤</span>
 ${inner}
-<p class="verse">여호와께서 여기까지 우리를 도우셨다<span>사무엘상 7:12</span></p>
+<p class="verse">“나의 나 된 것은 다 하나님의 은혜로 된 것이니”<span>고린도전서 15:10</span></p>
 </main></body></html>`;
 }
