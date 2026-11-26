@@ -1,0 +1,13 @@
+{
+  "name": "Here by Grace 네컷",
+  "short_name": "네컷",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#12141c",
+  "theme_color": "#12141c",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
