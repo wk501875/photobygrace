@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Here by Grace 네컷</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="네컷">
+<link rel="apple-touch-icon" href="icon-512.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Caveat:wght@600&display=swap">
 <style>
   /* 키오스크 한 화면: 왼쪽 카메라, 오른쪽 안내/결과 패널 (좁으면 세로로) */
@@ -24,7 +30,22 @@
   body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; }
   .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px;
          padding-block: 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
-  @media (max-width: 860px) { .app { grid-template-columns: 1fr; height: auto; } }
+  /* 세로 화면(세로로 세운 태블릿): 카메라 위, 패널 아래 */
+  @media (max-width: 860px), (orientation: portrait) {
+    .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+    .stage { min-height: 0; }
+    /* 결과 화면에서는 카메라를 접고 사진과 QR을 크게 */
+    .app.done { grid-template-rows: minmax(0, 1fr); }
+    .app.done .stage { display: none; }
+    .app.done .result { grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 24px; }
+    .app.done .qrbox canvas { max-width: 320px; }
+    .app.done .status { font-size: 18px; }
+    .app.done .thumbs { max-width: 560px; }
+  }
+  /* 휴대폰 가로처럼 낮은 화면은 그냥 스크롤 */
+  @media (max-height: 640px) { .app { height: auto; } }
+  html, body { overscroll-behavior: none; }
+  .btn, .thumbs button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 
   .stage { position: relative; background: #000; border-radius: 16px; overflow: hidden; min-height: 300px;
            display: grid; place-items: center; }
@@ -155,7 +176,7 @@
     get() { try { return JSON.parse(localStorage.getItem("booth") || "{}"); } catch { return {}; } },
     set(v) { try { localStorage.setItem("booth", JSON.stringify(v)); } catch {} },
   };
-  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: true, deviceId: "" }, store.get());
+  let S = Object.assign({ countdown: C.countdown, mirror: C.mirror, uploadUrl: "", eventCode: "", autoSave: !matchMedia("(pointer: coarse)").matches, deviceId: "" }, store.get());
 
   $("title").textContent = C.title || "Here by Grace";
   $("subtitle").textContent = C.subtitle || "";
@@ -168,7 +189,7 @@
     $("nocam").hidden = true;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: S.deviceId ? { exact: S.deviceId } : undefined, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        video: { deviceId: S.deviceId ? { exact: S.deviceId } : undefined, facingMode: S.deviceId ? undefined : "user", width: { ideal: 1920 }, height: { ideal: 1080 } },
         audio: false,
       });
       video.srcObject = stream;
@@ -185,6 +206,19 @@
   let busy = false;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   let audio;
+  function unlockAudio() {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
+    } catch {}
+  }
+  // 촬영 중 화면이 꺼지지 않게
+  let wakeLock = null;
+  async function keepAwake() {
+    try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch {}
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
+  document.addEventListener("pointerdown", () => { unlockAudio(); keepAwake(); }, { passive: true });
   function beep(freq, len) {
     try {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
@@ -313,7 +347,7 @@
     if (current) URL.revokeObjectURL(current.url);
     current = { blob, url: URL.createObjectURL(blob), name: "herebygrace-" + stamp() + ".jpg" };
     $("resultImg").src = current.url;
-    $("shootView").hidden = true; $("doneView").hidden = false;
+    showDone(true);
     $("qr").innerHTML = "";
     if (S.autoSave && !window.claude) saveLocal();   // 아티팩트 미리보기에서는 자동 저장 안 함
     upload();
@@ -384,19 +418,24 @@
         b.setAttribute("aria-label", (i + 1) + "번째 컷" + (s ? " 다시 찍기" : ""));
         if (s) { b.classList.add("filled"); b.style.backgroundImage = "url(" + s.toDataURL("image/jpeg", 0.5) + ")"; }
         b.disabled = id === "thumbs";
-        b.onclick = () => { if (!busy && s) { $("doneView").hidden = true; $("shootView").hidden = false; runSession([i]); } };
+        b.onclick = () => { if (!busy && s) { showDone(false); runSession([i]); } };
         box.appendChild(b);
       });
     }
   }
 
+  function showDone(on) {
+    $("doneView").hidden = !on; $("shootView").hidden = on;
+    document.querySelector(".app").classList.toggle("done", on);
+  }
+
   function reset() {
     shots.fill(null); renderThumbs();
-    $("doneView").hidden = true; $("shootView").hidden = false;
+    showDone(false);
   }
 
   // ---- 이벤트 ----
-  $("startBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
+  $("startBtn").onclick = () => { unlockAudio(); reset(); runSession([0, 1, 2, 3]); };
   $("nextBtn").onclick = reset;
   $("sampleBtn").onclick = () => { reset(); runSession([0, 1, 2, 3]); };
   $("pickBtn").onclick = () => $("pickInput").click();
