@@ -31,6 +31,7 @@ window.BOOTH_CONFIG = {
   // 홈 화면 배경 루프 영상 (소리 없이 반복). 빼려면 "" → 예전 흑백 홈 화면
   homeVideo: "media/home-loop.mp4",
   homePoster: "media/home-loop.jpg",
+  homeVerse: { text: "나의 나 된 것은 하나님의 은혜라", ref: "고린도전서 15:10" },   // 홈 화면 말씀
 
   // 컷마다 화면에 보여 줄 포즈 안내
   poses: ["활짝 웃어요", "손가락 하트", "브이!", "자유 포즈"],
