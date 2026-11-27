@@ -243,5 +243,37 @@
     },
   };
 
+  // 예수님 자리: 카메라가 눈높이, 1.2m쯤 떨어져 선 사람과 머리 크기·눈높이가 맞도록
+  //   scale: 칸 높이 대비 이미지 높이, drop: 위에서 내려오는 정도(아래쪽은 칸 밖으로 잘림), left: 왼쪽 여백 (모두 칸 크기 대비)
+  function jesusRect(p, img, o = {}) {
+    const scale = o.scale ?? 1, drop = o.drop ?? .16, left = o.left ?? .06;
+    const h = p.h * scale, w = h * img.width / img.height;
+    return { x: p.x + p.w * left, y: p.y + p.h * drop, w, h };
+  }
+  window.jesusRect = jesusRect;
+
+  // F. 주님과 함께 — 각 컷 왼쪽 아래에 같은 번호의 예수님 포즈 (G.jesus: 이미지 4장, 모두 있을 때만 목록에 나옴)
+  D.withjesus = {
+    name: "주님과 함께", empty: "#E9E2D6", needs: "jesus",
+    fonts: ["40px Italiana", "700 14px 'Gowun Batang'", "400 11px 'Gowun Batang'"],
+    photo: (s, i, G) => inset(s, 0, 12 * G.u),
+    // 사진 위에 예수님. 크기·위치는 jesusRect (촬영 화면 안내 이미지도 같은 계산). 칸 밖은 잘림(호출하는 쪽에서 칸 모양으로 clip)
+    over(ctx, p, pose, G) {
+      const j = G.jesus && G.jesus[pose % G.jesus.length]; if (!j) return;
+      const r = jesusRect(p, j, G.jesusFit); ctx.drawImage(j, r.x, r.y, r.w, r.h);
+    },
+    draw(ctx, layer, G) {
+      const M = map(G, 160), u = M.u;
+      if (layer === "bg") { ctx.fillStyle = "#FAF6EF"; ctx.fillRect(0, 0, G.W, G.H); return; }
+      text(ctx, "WITH JESUS", G.W / 2, M.hy(74), { font: fitFont(ctx, "WITH JESUS", 50 * u, (z) => `400 ${z.toFixed(1)}px Italiana, Georgia, serif`, G.R - G.L), color: "#3E352C", align: "center", ls: .14 });
+      text(ctx, "주님과 함께", G.W / 2, M.hy(116), { font: M.f(15, ["700", "'Gowun Batang', serif"]), color: "#6E6152", align: "center", ls: .12 });
+      const g = ctx.createLinearGradient(G.W / 2 - 40 * u, 0, G.W / 2 + 40 * u, 0); RAINBOW_SOFT.forEach((c, k) => g.addColorStop(k / 6, c));
+      ctx.fillStyle = g; rrect(ctx, G.W / 2 - 40 * u, M.hy(136), 80 * u, 3 * u, 1.5 * u); ctx.fill();
+      const line = "나의 나 된 것은 하나님의 은혜라 · 고전 15:10";
+      text(ctx, line, G.W / 2, M.fy(1142), { font: fitFont(ctx, line, 14 * u, (z) => `400 ${z.toFixed(1)}px 'Gowun Batang', serif`, G.R - G.L), color: "#3E352C", align: "center" });
+      text(ctx, DT(G), G.W / 2, M.fy(1168), { font: M.f(11, ["400", "'Gowun Batang', serif"]), color: "#8A7D70", align: "center", ls: .12 });
+    },
+  };
+
   window.FRAME_STYLES = D;
 })();
