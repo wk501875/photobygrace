@@ -1,13 +1,18 @@
 {
-  "name": "Here by Grace 네컷",
-  "short_name": "네컷",
+  "name": "Here by Grace 포토부스",
+  "short_name": "Here by Grace",
+  "description": "성도교제의 밤 인생네컷 포토부스",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
   "orientation": "any",
-  "background_color": "#12141c",
-  "theme_color": "#12141c",
+  "background_color": "#000000",
+  "theme_color": "#EEE6D8",
   "icons": [
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -30,7 +30,7 @@ window.BOOTH_CONFIG = {
   jesus: ["assets/jesus/1.png", "assets/jesus/2.png", "assets/jesus/3.png", "assets/jesus/4.png"],
   // 예수님 크기·위치 (사진 칸 대비). 현장에서 사람과 비교해 보고 조정하세요
   //   scale 1 = 칸 높이만큼, drop = 위에서 내려오는 정도(눈높이 맞춤, 아래는 잘림), left = 왼쪽 여백
-  jesusFit: { scale: 1, drop: .16, left: .06 },
+  jesusFit: { scale: 1.2, drop: .15, left: .12 },
   frame: "pastel",   // 처음 선택돼 있는 디자인
 
   // 홈 화면 배경 반복 영상 (소리 없이). 빼려면 "" → 예전 흑백 홈 화면
