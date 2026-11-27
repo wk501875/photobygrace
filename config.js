@@ -24,7 +24,13 @@ window.BOOTH_CONFIG = {
 
   // 디자인 (frames.js): 어떤 사진 모양에도 다 입힐 수 있어요. 이 순서로 나오고, 빼고 싶은 건 지우세요.
   // white 흰색, black 검정, pastel 파스텔 무지개, minimal 화이트 미니멀, passport 은혜 여권, night 성도교제의 밤, holo 홀로그램
-  styles: ["white", "black", "pastel", "minimal", "passport", "night", "holo"],
+  // withjesus 주님과 함께 (assets/jesus 이미지 4장이 모두 있을 때만 나와요)
+  styles: ["withjesus", "white", "black", "pastel", "minimal", "passport", "night", "holo"],
+  // 주님과 함께: 컷마다 왼쪽에 들어가는 예수님 포즈 (1 반쪽 하트, 2 머리 위 하트, 3 옆 사람 가리키기, 4 어깨동무)
+  jesus: ["assets/jesus/1.png", "assets/jesus/2.png", "assets/jesus/3.png", "assets/jesus/4.png"],
+  // 예수님 크기·위치 (사진 칸 대비). 현장에서 사람과 비교해 보고 조정하세요
+  //   scale 1 = 칸 높이만큼, drop = 위에서 내려오는 정도(눈높이 맞춤, 아래는 잘림), left = 왼쪽 여백
+  jesusFit: { scale: 1, drop: .16, left: .06 },
   frame: "pastel",   // 처음 선택돼 있는 디자인
 
   // 홈 화면 배경 반복 영상 (소리 없이). 빼려면 "" → 예전 흑백 홈 화면

@@ -88,6 +88,9 @@
   @keyframes drain { to { stroke-dashoffset: 289; } }
   .ring span { position: relative; font-family: var(--display); color: #FBF6EC; font-size: clamp(110px, 16vw, 230px); line-height: 1; text-shadow: 0 2px 24px rgba(40,30,22,.35); }
   .ring.ready span { font-family: var(--head); font-weight: 700; font-size: clamp(30px, 4vw, 46px); }
+  /* 주님과 함께: 카메라 왼쪽 아래에 예수님 포즈 (합성과 같은 자리·크기: 높이 98%, 폭 55%까지) */
+  .jguide { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+  .jguide img { position: absolute; max-width: none; filter: drop-shadow(0 6px 18px rgba(0,0,0,.22)); }
   .flash { position: absolute; inset: 0; z-index: 4; background: #FFFBF3; opacity: 0; pointer-events: none; }
   .flash.on { animation: flash .5s ease-out; }
   @keyframes flash { from { opacity: .95 } to { opacity: 0 } }
@@ -451,6 +454,7 @@
         <span id="countNum" aria-live="assertive"></span>
       </div>
     </div>
+    <div class="jguide" id="jguide" hidden aria-hidden="true"><img alt=""></div>
     <div class="flash" id="flash"></div>
     <div class="nocam" id="nocam" hidden>
       <p id="nocamMsg"></p>
@@ -569,9 +573,17 @@
   }
   // 디자인 (frames.js): config.styles 순서대로. 어떤 사진 모양에도 다 입힐 수 있어요
   const STYLES = {};
-  { const all = window.FRAME_STYLES || {};
-    for (const k of (Array.isArray(C.styles) ? C.styles : Object.keys(all))) if (all[k]) STYLES[k] = all[k];
-    if (!Object.keys(STYLES).length) Object.assign(STYLES, all); }
+  // 주님과 함께: 예수님 포즈 이미지 4장 (config.jesus). 모두 불러와졌을 때만 디자인 목록에 나옴
+  const JESUS = [];
+  let jesusReady = false;
+  function buildStyles() {
+    const all = window.FRAME_STYLES || {};
+    for (const k in STYLES) delete STYLES[k];
+    const ok = (k) => all[k] && !(all[k].needs === "jesus" && !jesusReady);
+    for (const k of (Array.isArray(C.styles) ? C.styles : Object.keys(all))) if (ok(k)) STYLES[k] = all[k];
+    if (!Object.keys(STYLES).length) for (const k in all) if (ok(k)) STYLES[k] = all[k];
+  }
+  buildStyles();
   const defStyle = () => STYLES[C.frame] ? C.frame : Object.keys(STYLES)[0];
   const defLayout = () => LAYOUTS[C.layout] ? C.layout : Object.keys(LAYOUTS)[0];
   let layout = defLayout();
@@ -646,7 +658,7 @@
   function geo(lk = layout, sk = frame, k = 1) {
     const L = LAYOUTS[lk], St = STYLES[sk], top = Math.min(...L.slots.map(s => s.y)), bottom = Math.max(...L.slots.map(s => s.y + s.h));
     const G = { W: L.w, H: L.h, u: top / 160, top, bottom, k, L: Math.min(...L.slots.map(s => s.x)), R: Math.max(...L.slots.map(s => s.x + s.w)),
-                slots: L.slots, title: C.title, subtitle: C.subtitle, verse: verseNow, date: shotDate };
+                slots: L.slots, title: C.title, subtitle: C.subtitle, verse: verseNow, date: shotDate, jesus: JESUS, jesusFit: C.jesusFit };
     G.photos = L.slots.map((s, i) => St.photo(s, i, G));
     return G;
   }
@@ -777,6 +789,7 @@
       }
     };
     mk($("lookChips"), LOOKS, look, (k) => { look = k; renderChips(); previewLook(); });
+    if (!busy) updateGuide(0);
     $("frameNow").textContent = "프레임: " + LAY().name + " · " + STYLES[frame].name + " (" + N() + "컷)";
   }
   // 프레임 고르기: 사진 모양 → 디자인. 썸네일·미리보기는 실제 결과를 작게 그린 것
@@ -903,6 +916,37 @@
   $("stkClear").onclick = () => { placed = []; selIdx = -1; renderStickers(); };
   $("stkLayer").addEventListener("pointerdown", (e) => { if (e.target === e.currentTarget && selIdx >= 0) { selIdx = -1; renderStickers(); } });
 
+  // ---- 주님과 함께 ----
+  const JESUS_POSES = ["예수님과 반쪽 하트", "머리 위로 하트", "예수님이 나를 가리켜요", "예수님과 어깨동무"];
+  const withJesus = () => !!(STYLES[frame] && STYLES[frame].over && jesusReady);
+  const poseIdx = (i) => (shots[i] && shots[i].pose != null ? shots[i].pose : i);
+  // 카메라 화면 왼쪽에 지금 컷의 예수님 (거울 모드여도 이미지는 그대로)
+  let guidePose = 0;
+  function updateGuide(pose = 0) {
+    const g = $("jguide"), j = withJesus() && JESUS[pose % 4];
+    guidePose = pose; g.hidden = !j; if (!j) return;
+    const im = g.querySelector("img"), cam = document.querySelector(".cam"), W = cam.clientWidth, H = cam.clientHeight;
+    if (im.getAttribute("src") !== C.jesus[pose % 4]) im.src = C.jesus[pose % 4];
+    const r = window.jesusRect({ x: 0, y: 0, w: W, h: H }, j, C.jesusFit);   // 결과 사진과 같은 자리·크기
+    Object.assign(im.style, { left: r.x + "px", top: r.y + "px", width: r.w + "px", height: r.h + "px" });
+  }
+  addEventListener("resize", () => { if (!$("jguide").hidden) updateGuide(guidePose); });
+  function jesusThumb(c, pose) {
+    const t = document.createElement("canvas"), sc = 420 / c.width; t.width = 420; t.height = Math.round(c.height * sc);
+    const x = t.getContext("2d"); x.drawImage(c, 0, 0, t.width, t.height);
+    STYLES[frame].over(x, { x: 0, y: 0, w: t.width, h: t.height }, pose, { jesus: JESUS, jesusFit: C.jesusFit });
+    return t.toDataURL("image/jpeg", .75);
+  }
+  if (Array.isArray(C.jesus) && C.jesus.length === 4) {
+    Promise.all(C.jesus.map((src, k) => new Promise(ok => { const im = new Image(); im.onload = () => { JESUS[k] = im; ok(true); }; im.onerror = () => ok(false); im.src = src; })))
+      .then(r => {
+        if (!r.every(Boolean)) return;
+        jesusReady = true; buildStyles();
+        if (!$("pick").hidden) renderPick();
+        if (!busy) updateGuide(0);
+      });
+  }
+
   // ---- 카운트다운 ----
   const ring = $("ring"), countNum = $("countNum");
   function showRing(text, ready) {
@@ -913,13 +957,19 @@
   // into: 찍은 사진을 넣을 배열(shots 또는 takes), total: 이번에 찍는 전체 장수
   async function takeOne(i, into = shots, total = N()) {
     liveIndex = i; renderThumbs();
-    $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/" + two(total); $("chipPose").textContent = poseOf(i);
-    $("poseNo").textContent = "Cut " + two(i + 1) + " / " + two(total); $("poseText").textContent = poseOf(i);
+    // 주님과 함께: 다시 찍기면 그 칸의 포즈 그대로, 아니면 i번째 포즈
+    const pose = into === shots && shots[i] && shots[i].pose != null ? shots[i].pose : i % 4, wj = withJesus();
+    const poseTxt = wj ? (JESUS_POSES[pose] || poseOf(i)) : poseOf(i);
+    updateGuide(pose);
+    $("chip").hidden = false; $("chipNo").textContent = two(i + 1) + "/" + two(total); $("chipPose").textContent = poseTxt;
+    $("poseNo").textContent = "Cut " + two(i + 1) + " / " + two(total); $("poseText").textContent = poseTxt;
     showRing("준비!", true); await sleep(900);
     for (let s = S.countdown; s > 0; s--) { showRing(s); beep(660, 0.08); await sleep(1000); }
     $("count").hidden = true;
     beep(990, 0.15);
     into[i] = grab(Math.min(i, N() - 1));
+    into[i].pose = pose;
+    if (wj) into[i].thumb = jesusThumb(into[i], pose);   // 고르기 화면 작은 사진에도 예수님
     const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on");
     liveIndex = -1; renderThumbs();
     await sleep(800);
@@ -1059,6 +1109,7 @@
       roundRect(ctx, p.x, p.y, p.w, p.h, p.r || 0); ctx.clip();
       if (!empty && shots[i]) ctx.drawImage(shots[i], p.x, p.y, p.w, p.h);
       else { ctx.fillStyle = St.empty; ctx.fillRect(p.x, p.y, p.w, p.h); }
+      if (St.over) St.over(ctx, p, poseIdx(i), G);   // 주님과 함께: 그 사진을 찍을 때의 예수님 포즈
       ctx.restore();
     });
     St.draw(ctx, "fg", G);
@@ -1169,6 +1220,7 @@
     if (view !== "select") stopSelIdle();
     $("app").classList.toggle("shooting", view === "shoot");
     if (view !== "done") stopIdle();
+    if (view === "idle") updateGuide(0);
   }
   function reset() { shots = new Array(N()).fill(null); takes = []; picks = []; verseNow = null; liveSrc = "shots"; uploaded = false; renderThumbs(); show("idle"); }
   // 홈 배경 루프 영상: 홈 화면일 때만 재생 (배터리·카메라 성능)
