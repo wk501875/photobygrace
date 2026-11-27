@@ -9,7 +9,7 @@ export async function onRequestGet({ params, env }) {
       <p class="empty">사진을 찾을 수 없어요.<br>보관 기간이 지났거나 주소가 잘못되었을 수 있어요.</p>`), 404);
   }
   return html(page(TITLE, `<h1>${TITLE}</h1>
-    <p class="sub">성도교제의 밤 · 오늘의 네 컷</p>
+    <p class="sub">은혜로 여기까지, 오늘의 사진</p>
     <img class="photo" src="/img/${id}" alt="네컷 사진">
     <a class="btn" href="/img/${id}?dl=1">사진 저장하기</a>
     <p class="tip">저장이 안 되면 사진을 <b>길게 눌러</b> 저장해 주세요.<br>
