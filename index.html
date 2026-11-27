@@ -403,7 +403,7 @@
   </button>
   <div class="home-main">
     <div class="home-head">
-      <div class="topline" style="margin-bottom:22px"><span class="label">Photo Booth · 01—04</span><span class="label" id="homeDate"></span></div>
+      <div class="topline" style="margin-bottom:22px"><span class="label">Photo Booth · 01—04</span></div>
       <h1 class="home-title" id="homeTitle"></h1>
     </div>
     <div class="home-foot">
@@ -464,7 +464,7 @@
   </div></section>
 
   <aside class="panel">
-    <div class="topline"><span class="label" id="cutLabel">Photo Booth · 01—04</span><span class="label" id="dateLabel"></span></div>
+    <div class="topline"><span class="label" id="cutLabel">Photo Booth · 01—04</span></div>
     <header class="brand">
       <h1 id="title">Here by Grace</h1>
       <p id="subtitle">성도교제의 밤</p>
@@ -590,7 +590,6 @@
   $("subtitle").textContent = C.subtitle || "";
   const poseOf = (i) => C.poses[i] || "자유 포즈";
   const two = (n) => String(n).padStart(2, "0");
-  { const d = new Date(), t = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); $("dateLabel").textContent = t; $("homeDate").textContent = t; }
   // 홈 타이틀: 단어마다 한 줄
   for (const w of String(C.title || "Here by Grace").split(/\s+/)) { const sp = document.createElement("span"); sp.textContent = w; $("homeTitle").appendChild(sp); }
   $("homeSub").textContent = C.subtitle || "";
@@ -641,13 +640,13 @@
   let busy = false, liveIndex = -1;
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   // 사진마다 은혜 말씀 하나 (config.verses에서 랜덤)
-  let verseNow = null;
+  let verseNow = null, shotDate = "";   // 촬영 날짜: 촬영을 시작할 때 정함 (결과 사진에만 들어감)
   const pickVerse = () => { const v = Array.isArray(C.verses) ? C.verses : []; verseNow = C.verse === false || !v.length ? null : v[Math.floor(Math.random() * v.length)]; };
   // 사진 자리 (디자인마다 칸 안쪽 여백·모서리·기울기가 달라요)
   function geo(lk = layout, sk = frame, k = 1) {
     const L = LAYOUTS[lk], St = STYLES[sk], top = Math.min(...L.slots.map(s => s.y)), bottom = Math.max(...L.slots.map(s => s.y + s.h));
     const G = { W: L.w, H: L.h, u: top / 160, top, bottom, k, L: Math.min(...L.slots.map(s => s.x)), R: Math.max(...L.slots.map(s => s.x + s.w)),
-                slots: L.slots, title: C.title, subtitle: C.subtitle, footer: C.footer, verse: verseNow };
+                slots: L.slots, title: C.title, subtitle: C.subtitle, verse: verseNow, date: shotDate };
     G.photos = L.slots.map((s, i) => St.photo(s, i, G));
     return G;
   }
@@ -943,6 +942,7 @@
     const total = totalTakes();
     takes = new Array(total).fill(null);
     pickVerse();   // 촬영할 때마다 은혜 말씀을 새로 뽑음
+    { const d = new Date(); shotDate = d.getFullYear() + "." + two(d.getMonth() + 1) + "." + two(d.getDate()); }
     busy = true; liveSrc = "takes"; show("shoot");
     try { for (let i = 0; i < total; i++) await takeOne(i, takes, total); }
     finally { $("chip").hidden = true; $("count").hidden = true; busy = false; liveIndex = -1; }
