@@ -83,8 +83,7 @@
         const title = String(G.title || "Here by Grace").toUpperCase();
         const tf = fitFont(ctx, title, 64 * u, (s) => `${s.toFixed(1)}px Anton, 'Arial Narrow', sans-serif`, room * .62);
         text(ctx, title, G.L, M.hy(96), { font: tf, color: P.ink });
-        text(ctx, G.subtitle || "", G.R, M.hy(84), { font: M.f(12, ["500", "'Noto Sans KR', sans-serif"]), color: P.ink, align: "right" });
-        text(ctx, DT(G), G.R, M.hy(108), { font: M.f(10, ["600", "Inter, sans-serif"]), color: P.sub, align: "right", ls: .12 });
+        text(ctx, DT(G), G.R, M.hy(100), { font: M.f(10, ["600", "Inter, sans-serif"]), color: P.sub, align: "right", ls: .12 });
         const v = V(G);
         const rf = M.f(10, ["600", "Inter, 'Noto Sans KR', sans-serif"]), refW = textWidth(ctx, v.ref, rf);
         text(ctx, v.ref, G.R, M.fy(1140), { font: rf, color: P.sub, align: "right" });
@@ -111,7 +110,7 @@
       RAINBOW_SOFT.forEach((c, i) => dot(ctx, M.xc(152 + i * 16), M.fy(1132), 5 * u, c));
       const v = V(G);
       text(ctx, v.text, G.W / 2, M.fy(1150), { font: fitFont(ctx, v.text, 13 * u, (z) => `400 ${z.toFixed(1)}px 'Gowun Dodum', sans-serif`, G.R - G.L), color: "#4A3F35", align: "center" });
-      text(ctx, DT(G) + " 성도교제의 밤 · " + v.ref, G.W / 2, M.fy(1171), { font: M.f(11, ["400", "'Gowun Dodum', sans-serif"]), color: "#6E6152", align: "center" });
+      text(ctx, DT(G) + " · " + v.ref, G.W / 2, M.fy(1171), { font: M.f(11, ["400", "'Gowun Dodum', sans-serif"]), color: "#6E6152", align: "center" });
     },
   };
 
@@ -127,8 +126,7 @@
       text(ctx, "Here by", G.L, M.hy(49), { font: tf, color: "#222222", ls: -.01 });
       text(ctx, "Grace.", G.L, M.hy(85), { font: tf, color: "#222222", ls: -.01 });
       const sf = M.f(10, ["400", "'Noto Sans KR', sans-serif"]);
-      text(ctx, DT(G), G.R, M.hy(80), { font: sf, color: "#555555", align: "right" });
-      text(ctx, "성도교제의 밤", G.R, M.hy(95), { font: sf, color: "#555555", align: "right" });
+      text(ctx, DT(G), G.R, M.hy(95), { font: sf, color: "#555555", align: "right" });
       const g = ctx.createLinearGradient(G.L, 0, G.R, 0); RAINBOW_SOFT.forEach((c, i) => g.addColorStop(i / 6, c));
       ctx.fillStyle = g; rrect(ctx, G.L, M.hy(116), G.R - G.L, 4 * u, 2 * u); ctx.fill();
       ["#F4A7A0", "#F6E3A1", "#B9D8B4", "#A9CDE8", "#CDB4DB"].forEach((c, i) => foot(ctx, M.xl(24 + i * 18), M.fy(i % 2 ? 1162 : 1158), u, c));
@@ -164,7 +162,7 @@
       ctx.save(); ctx.setLineDash([6 * u, 4 * u]); ctx.lineWidth = 2 * u; ctx.strokeStyle = "#33325E"; rrect(ctx, bx, M.hy(21), bw, 87.6 * u, 10 * u); ctx.stroke(); ctx.restore();
       text(ctx, "GRACE PASSPORT", M.xl(36), M.hy(37), { font: M.f(10, ["700", "'Space Mono', monospace"]), color: "#33325E", ls: .2 });
       text(ctx, "Here by Grace", M.xl(36), M.hy(62), { font: M.f(32, ["700", "Gaegu, cursive"]), color: "#33325E" });
-      text(ctx, "No. " + DT(G) + " · 성도교제의 밤", M.xl(36), M.hy(87), { font: M.f(10, ["400", "'Space Mono', monospace"]), color: "#33325E" });
+      text(ctx, "No. " + DT(G), M.xl(36), M.hy(87), { font: M.f(10, ["400", "'Space Mono', monospace"]), color: "#33325E" });
       ctx.save(); ctx.translate(M.xr(331), M.hy(64.8)); ctx.rotate(-12 * Math.PI / 180);
       ctx.strokeStyle = "#E4877E"; ctx.lineWidth = 2 * u; ctx.beginPath(); ctx.arc(0, 0, 30 * u, 0, Math.PI * 2); ctx.stroke();
       ["ARRIVED", "BY", "GRACE"].forEach((t, i) => text(ctx, t, 0, (i - 1) * 11.7 * u, { font: M.f(9, ["700", "'Space Mono', monospace"]), color: "#E4877E", align: "center" }));
@@ -211,7 +209,7 @@
       G.photos.forEach((p, i) => { ctx.strokeStyle = NIGHT_BORDER[i % 4]; ctx.lineWidth = 1.5 * u; rrect(ctx, p.x + .75 * u, p.y + .75 * u, p.w - 1.5 * u, p.h - 1.5 * u, p.r - .75 * u); ctx.stroke(); });
       const v = V(G);
       text(ctx, v.text, G.W / 2, M.fy(1150), { font: fitFont(ctx, v.text, 14 * u, (z) => `700 ${z.toFixed(1)}px 'Gowun Batang', serif`, G.R - G.L), color: "#F3EEDF", align: "center" });
-      text(ctx, DT(G) + " 성도교제의 밤 · " + v.ref, G.W / 2, M.fy(1172), { font: M.f(11, ["400", "'Gowun Batang', serif"]), color: "#B9BDD3", align: "center", ls: .08 });
+      text(ctx, DT(G) + " · " + v.ref, G.W / 2, M.fy(1172), { font: M.f(11, ["400", "'Gowun Batang', serif"]), color: "#B9BDD3", align: "center", ls: .08 });
     },
   };
 
@@ -228,7 +226,7 @@
         [["#FDE2EC", 0], ["#FFF3D6", .22], ["#DDF5E6", .45], ["#DCEBFF", .68], ["#EADFFF", 1]].forEach(([c, p]) => g.addColorStop(p, c));
         ctx.fillStyle = g; ctx.fillRect(0, 0, G.W, G.H); return;
       }
-      const bf = M.f(11, ["700", "'Noto Sans KR', sans-serif"]), badge = DT(G) + " 성도교제의 밤", bw = textWidth(ctx, badge, bf, .2) + 24 * u;
+      const bf = M.f(11, ["700", "'Noto Sans KR', sans-serif"]), badge = DT(G), bw = textWidth(ctx, badge, bf, .2) + 24 * u;
       const total = 26 * u + bw + 22 * u, x0 = G.W / 2 - total / 2;
       spark(ctx, x0, M.hy(49), 18 * u, "#FFFFFF");
       ctx.fillStyle = "#3A2F6B"; rrect(ctx, x0 + 26 * u, M.hy(46), bw, 24 * u, 12 * u); ctx.fill();
