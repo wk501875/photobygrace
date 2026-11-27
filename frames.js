@@ -246,7 +246,7 @@
   // 예수님 자리: 카메라가 눈높이, 1.2m쯤 떨어져 선 사람과 머리 크기·눈높이가 맞도록
   //   scale: 칸 높이 대비 이미지 높이, drop: 위에서 내려오는 정도(아래쪽은 칸 밖으로 잘림), left: 왼쪽 여백 (모두 칸 크기 대비)
   function jesusRect(p, img, o = {}) {
-    const scale = o.scale ?? 1, drop = o.drop ?? .16, left = o.left ?? .06;
+    const scale = o.scale ?? 1.2, drop = o.drop ?? .15, left = o.left ?? .12;
     const h = p.h * scale, w = h * img.width / img.height;
     return { x: p.x + p.w * left, y: p.y + p.h * drop, w, h };
   }

@@ -8,9 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="네컷">
-<meta name="theme-color" content="#ececec">
-<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-title" content="Here by Grace">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#EEE6D8">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600&family=Noto+Sans+KR:wght@400;500;700&family=Caveat:wght@700&family=Gowun+Dodum&family=Fraunces:ital,opsz,wght@1,9..144,500&family=Gaegu:wght@700&family=Space+Mono:wght@400;700&family=DM+Serif+Display:ital@1&family=Gowun+Batang:wght@400;700&family=Bagel+Fat+One&family=Italiana&display=swap">
 <style>
   /* 포토부스 키오스크 — 시작화면(무지개 언덕)과 같은 톤: 따뜻한 크림 바탕, 짙은 갈색 글자·버튼,
@@ -358,6 +359,8 @@
   dialog input[type=text], dialog input[type=password], dialog input[type=number], dialog select {
     font: inherit; font-size: 16px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); }
   dialog input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--ink); }
+  .appbox { display: grid; gap: 8px; padding: 14px; border-radius: 16px; background: var(--soft); }
+  .appbox b { font-size: 15px; }
   dialog .save { background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: 15px; font-size: 16px; font-weight: 700; cursor: pointer; }
 
   /* 세로 화면(세로로 세운 태블릿): 카메라 위, 패널 아래 */
@@ -533,7 +536,7 @@
           <button class="ghost" id="retryBtn" type="button" hidden>업로드 다시 시도</button>
           <button class="ghost" id="saveBtn" type="button">이 기기에 저장</button>
         </div>
-        <button class="cta" id="nextBtn" type="button">다음 분 촬영하기</button>
+        <button class="cta" id="nextBtn" type="button">처음 화면으로</button>
         <div class="bye" id="bye"></div>
       </div>
     </div>
@@ -552,6 +555,11 @@
     <label class="check"><input id="setPick" type="checkbox"> 여러 장 찍고 마음에 드는 컷 고르기</label>
     <label class="check"><input id="setAutoSave" type="checkbox"> 찍을 때마다 이 기기에도 저장 (백업)</label>
     <label>업로드 주소 (비워 두면 기본값) <input id="setUrl" type="text" placeholder="/api/upload"></label>
+    <div class="appbox">
+      <b>전체 화면 앱으로 쓰기</b>
+      <button class="save" id="installBtn" type="button" hidden>이 기기에 앱으로 설치</button>
+      <p class="hint" id="installHint"></p>
+    </div>
     <p class="hint">행사 코드를 넣으면 "설정" 버튼이 사라져요. 다시 열려면 화면 오른쪽 위 모서리를 2초 동안 길게 누르세요.</p>
     <div class="row"><button class="ghost" value="cancel">닫기</button><button class="save" value="ok">저장</button></div>
   </form>
@@ -1265,24 +1273,55 @@
       if (homeVidOk && !$("home").hidden) vids[0].play().then(() => setTimeout(done, 150)).catch(done); else done();
     }, 900);
   }
-  if (homeVidOk && C.homeIntro && !$("home").hidden) {
-    introPhase = true; $("hero").classList.add("wait"); intro.hidden = false; $("homeSkip").hidden = false;
-    intro.poster = C.homeIntroPoster || ""; intro.src = C.homeIntro;
-    vids[0].pause();
-    intro.addEventListener("timeupdate", () => { if (introPhase && intro.duration && intro.duration - intro.currentTime < 1) toLoop(); });
-    intro.addEventListener("ended", () => { if (introPhase) toLoop(); });
-    intro.onerror = () => { if (introPhase) toLoop(); };
+  // 시작 영상: 처음 켤 때, 그리고 한 사람 촬영이 끝나 처음 화면으로 돌아올 때마다
+  let introBound = false;
+  function startIntro() {
+    if (!(homeVidOk && C.homeIntro)) return false;
+    if (!introBound) {
+      introBound = true; intro.poster = C.homeIntroPoster || ""; intro.src = C.homeIntro;
+      intro.addEventListener("timeupdate", () => { if (introPhase && intro.duration && intro.duration - intro.currentTime < 1) toLoop(); });
+      intro.addEventListener("ended", () => { if (introPhase) toLoop(); });
+      intro.onerror = () => { if (introPhase) toLoop(); };
+    }
+    introPhase = true; swapping = false;
+    $("hero").classList.remove("intro"); $("hero").classList.add("wait"); intro.hidden = false; $("homeSkip").hidden = false;
+    vids.forEach(v => v.pause());
+    try { intro.currentTime = 0; } catch {}
     intro.play().catch(() => toLoop());
-  } else heroIntro();
+    return true;
+  }
+  if ($("home").hidden || !startIntro()) heroIntro();
   // 전체 화면 버튼 (지원하는 브라우저에서만, 이미 전체 화면이면 숨김)
   const fsEl = document.documentElement, fsReq = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
   const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement) || matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches;
   const syncFs = () => { $("fsBtn").hidden = !fsReq || isFs(); };
   $("fsBtn").onclick = (e) => { e.stopPropagation(); try { const r = fsReq.call(fsEl); if (r && r.catch) r.catch(() => {}); } catch {} };
   document.addEventListener("fullscreenchange", syncFs); document.addEventListener("webkitfullscreenchange", syncFs); syncFs();
+  // 브라우저로 열었을 때: 화면을 처음 누르면 전체 화면으로 (앱으로 설치했으면 이미 전체 화면)
+  document.addEventListener("pointerdown", () => {
+    if (!fsReq || isFs() || $("settings").open) return;
+    try { const r = fsReq.call(fsEl); if (r && r.catch) r.catch(() => {}); } catch {}
+  }, { capture: true });
+  // 앱으로 설치: 안드로이드·크롬은 설치 버튼, 아이패드·아이폰은 홈 화면에 추가 안내
+  let installEvt = null;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function syncInstall() {
+    const standalone = matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches || navigator.standalone;
+    $("installBtn").hidden = standalone || !installEvt;
+    $("installHint").textContent = standalone ? "지금 앱으로 실행 중이에요. 주소창 없이 전체 화면으로 보여요."
+      : isIOS ? "Safari 공유 버튼(□↑) → \"홈 화면에 추가\" → 홈 화면의 Here by Grace 아이콘으로 열면 전체 화면이에요."
+      : installEvt ? "설치하면 홈 화면 아이콘으로 열 수 있고, 주소창·상태 표시줄 없이 전체 화면으로 보여요."
+      : "Chrome 메뉴(⋮) → \"앱 설치\" 또는 \"홈 화면에 추가\"로 설치하면 전체 화면으로 열려요.";
+  }
+  addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; syncInstall(); });
+  addEventListener("appinstalled", () => { installEvt = null; syncInstall(); });
+  $("installBtn").onclick = async () => { if (!installEvt) return; installEvt.prompt(); try { await installEvt.userChoice; } catch {} installEvt = null; syncInstall(); };
+  syncInstall();
+  if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
   function homeVideoPlay(on) { if (!homeVidOk) return; if (on) vids[vOn].play().catch(() => {}); else { vids.forEach(v => v.pause()); if (introPhase) { introPhase = false; intro.pause(); intro.hidden = true; $("homeSkip").hidden = true; } } }
   function showHome(on) {
-    $("home").hidden = !on; homeVideoPlay(on); if (on) { heroIntro(); syncFs(); }
+    $("home").hidden = !on;
+    if (on) { if (!startIntro()) { homeVideoPlay(true); heroIntro(); } syncFs(); } else homeVideoPlay(false);
     if (on) { $("pick").hidden = true; layout = defLayout(); frame = defStyle(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
   }
   function goHome() { if (!busy) showHome(true); }
@@ -1291,7 +1330,7 @@
   const allCuts = () => Array.from({ length: N() }, (_, i) => i);
   $("startBtn").onclick = () => { unlockAudio(); reset(); runTakes(); };
   $("selDone").onclick = () => completeSelect(false);
-  $("nextBtn").onclick = () => { placed = []; selIdx = -1; renderStickers(); reset(); };
+  $("nextBtn").onclick = () => { if (!busy) showHome(true); };   // 다음 사람: 맨 처음 시작 영상부터
   $("home").onclick = () => {
     if (introPhase) { toLoop(); return; }   // 시작 영상 중에는 건너뛰기
     if (swapping) return; unlockAudio(); showHome(false); showPick(true); };
@@ -1338,7 +1377,7 @@
         if (d.deviceId === S.deviceId) o.selected = true; sel.appendChild(o);
       });
     } catch {}
-    $("settings").showModal();
+    syncInstall(); $("settings").showModal();
   }
   $("gear").onclick = openSettings;
   let pressTimer = null;
