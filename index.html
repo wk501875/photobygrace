@@ -151,6 +151,20 @@
   .pose { padding: 12px 0 4px; }
   .pose .t { font-family: var(--head); font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.03em; text-wrap: balance; }
 
+  /* 높이가 낮은 가로 화면: 준비 패널을 촘촘하게 (촬영 시작 버튼이 화면 안에 들어오게) */
+  @media (orientation: landscape) and (max-height: 860px) {
+    .panel { padding: 22px 24px; gap: 14px; }
+    .view { gap: 14px; }
+    #idleView { gap: 12px; }
+    .app:not(.done):not(.select) .topline { display: none; }
+    .brand p { margin-top: 6px; }
+    .lead { font-size: 21px; }
+    .chips button { padding: 8px 14px; font-size: 14px; }
+    .tray button { width: 56px; height: 56px; }
+    .stk-tools button { padding: 7px 12px; font-size: 13px; }
+    .cta { padding: 19px 24px; font-size: 20px; }
+  }
+
   /* ---------- 결과: 카메라를 접고 전체 폭 — 사진 | QR | 다시 찍기·다음 ---------- */
   .app.done, .app.select { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); }
   .app.done .stage, .app.select .stage { display: none; }
