@@ -28,7 +28,10 @@ window.BOOTH_CONFIG = {
   styles: ["white", "black", "pastel", "minimal", "passport", "night", "holo"],
   frame: "pastel",   // 처음 선택돼 있는 디자인
 
-  // 홈 화면 배경 루프 영상 (소리 없이 반복). 빼려면 "" → 예전 흑백 홈 화면
+  // 홈 화면 배경 반복 영상 (소리 없이). 빼려면 "" → 예전 흑백 홈 화면
+  // 처음 켰을 때 한 번 나오는 시작 영상 (언덕길을 걸어 올라가면 무지개). 끝나면 빛으로 밝아지며 반복 영상으로. 빼려면 ""
+  homeIntro: "media/home-intro.mp4",
+  homeIntroPoster: "media/home-intro.jpg",
   homeVideo: "media/home-loop.mp4",
   homePoster: "media/home-loop.jpg",
   homeVerse: { text: "나의 나 된 것은 하나님의 은혜라", ref: "고린도전서 15:10" },   // 홈 화면 말씀
