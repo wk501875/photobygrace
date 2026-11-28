@@ -280,6 +280,21 @@
   .hero-cta b { font-family: "Italiana", Georgia, serif; font-weight: 400; font-size: clamp(22px, min(2.4vw, 3.4vh), 32px); letter-spacing: .2em; text-transform: uppercase; padding-left: .2em; }
   .hero-cta span { font-family: "Gowun Batang", serif; font-size: clamp(13px, min(1.2vw, 1.8vh), 16px); letter-spacing: .12em; color: #6A5D52; }
   @keyframes breathe { 50% { transform: scale(1.025); box-shadow: 0 22px 46px -22px rgba(40,30,20,.6); } }
+  /* 시작화면 운영 코드 입력 (코드가 없을 때만) */
+  .codebox { position: absolute; z-index: 4; left: 50%; bottom: max(6vh, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(460px, calc(100% - 32px));
+             display: grid; gap: 10px; padding: 22px 22px 16px; border-radius: 24px; background: rgba(251,248,242,.95); color: var(--ink); text-align: center;
+             box-shadow: 0 24px 50px -24px rgba(40,30,20,.55); cursor: default; }
+  .codebox b { font-family: var(--head); font-size: 20px; }
+  .codebox p { margin: 0; font-size: 14px; color: var(--mute); line-height: 1.5; }
+  .code-row { display: flex; gap: 8px; }
+  .code-row input { flex: 1; min-width: 0; font: inherit; font-size: 18px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
+  .code-row button { border: 0; border-radius: 14px; padding: 0 22px; font-size: 17px; font-weight: 700; background: var(--ink); color: #FBF6EC; cursor: pointer; }
+  .code-row button:disabled { opacity: .5; }
+  .codebox .code-msg { min-height: 1.4em; font-size: 13px; }
+  .codebox .code-msg.err { color: var(--warn); } .codebox .code-msg.ok { color: var(--ok); }
+  .codebox.shake { animation: shake .35s; }
+  @keyframes shake { 25% { transform: translateX(calc(-50% - 8px)); } 75% { transform: translateX(calc(-50% + 8px)); } }
+  .home.need-code .hero-cta { visibility: hidden; }
   .fs-btn { position: absolute; z-index: 2; top: max(18px, env(safe-area-inset-top, 0px)); right: max(18px, env(safe-area-inset-right, 0px)); width: 46px; height: 46px; border-radius: 999px;
             border: 0; display: grid; place-items: center; background: rgba(246,241,232,.7); color: #3A3029; cursor: pointer; }
   .fs-btn svg { width: 22px; height: 22px; }
@@ -404,6 +419,12 @@
     <p class="hero-ref" id="heroRef"></p>
     <button class="hero-cta" id="heroBtn" type="button"><b>Touch to start</b><span>화면을 터치해서 시작하세요</span></button>
   </div>
+  <form class="codebox" id="codeBox" hidden autocomplete="off">
+    <b>운영 코드</b>
+    <p>사진을 QR로 받으려면 이 기기에서 처음 한 번 운영 코드를 넣어 주세요.</p>
+    <div class="code-row"><input id="codeInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="운영 코드" aria-label="운영 코드"><button type="submit" id="codeOk">확인</button></div>
+    <p class="code-msg" id="codeMsg" role="status"></p>
+  </form>
   <button class="fs-btn" id="fsBtn" type="button" aria-label="전체 화면" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
@@ -1333,6 +1354,7 @@
   $("nextBtn").onclick = () => { if (!busy) showHome(true); };   // 다음 사람: 맨 처음 시작 영상부터
   $("home").onclick = () => {
     if (introPhase) { toLoop(); return; }   // 시작 영상 중에는 건너뛰기
+    if (!S.eventCode) { $("codeInput").focus(); $("codeBox").classList.remove("shake"); void $("codeBox").offsetWidth; $("codeBox").classList.add("shake"); return; }   // 운영 코드부터
     if (swapping) return; unlockAudio(); showHome(false); showPick(true); };
   $("backBtn").onclick = () => { if (!busy) showPick(true); };
   $("pickBack").onclick = goHome;
@@ -1355,6 +1377,7 @@
   $("retryBtn").onclick = upload;
   document.addEventListener("keydown", (e) => {
     if ($("settings").open || busy) return;
+    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;   // 운영 코드 입력 중
     bumpIdle();
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
@@ -1366,7 +1389,26 @@
   });
 
   // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
-  function syncGear() { $("gear").hidden = !!S.eventCode; }
+  function syncGear() { $("gear").hidden = !!S.eventCode; syncCode(); }
+  // 시작화면 운영 코드: 코드가 없으면 입력 창을 띄우고, 서버에서 맞는지 확인한 뒤 저장
+  function syncCode() { const need = !S.eventCode; $("codeBox").hidden = !need; $("home").classList.toggle("need-code", need); }
+  ["pointerdown", "click"].forEach(t => $("codeBox").addEventListener(t, (e) => e.stopPropagation()));
+  $("codeBox").onsubmit = async (e) => {
+    e.preventDefault();
+    const code = $("codeInput").value.trim(), msg = $("codeMsg");
+    if (!code) { $("codeInput").focus(); return; }
+    $("codeOk").disabled = true; msg.className = "code-msg"; msg.textContent = "확인하는 중…";
+    let ok = null;
+    const up = S.uploadUrl || C.uploadUrl || "/api/upload";
+    if (up.startsWith("/") || up.startsWith(location.origin)) {   // 우리 서버면 확인, 다른 업로드 주소면 확인 없이 저장
+      try { const r = await fetch(new URL("/api/check", location.href), { method: "POST", headers: { "X-Event-Code": code } }); ok = r.ok ? true : (r.status === 401 ? false : null); } catch { ok = null; }
+    }
+    $("codeOk").disabled = false;
+    if (ok === false) { msg.className = "code-msg err"; msg.textContent = "운영 코드가 맞지 않아요. 다시 확인해 주세요."; $("codeBox").classList.remove("shake"); void $("codeBox").offsetWidth; $("codeBox").classList.add("shake"); $("codeInput").select(); return; }
+    S.eventCode = code; store.set(S); $("codeInput").value = "";
+    msg.className = "code-msg ok"; msg.textContent = ok ? "확인됐어요." : "저장했어요.";
+    setTimeout(() => { msg.textContent = ""; syncGear(); }, 700);
+  };
   async function openSettings() {
     $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setPick").checked = !!S.pickMore;
     $("setAutoSave").checked = !!S.autoSave; $("setUrl").value = S.uploadUrl || ""; $("setCode").value = S.eventCode || "";
