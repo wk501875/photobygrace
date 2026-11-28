@@ -294,8 +294,12 @@
   .codebox .code-msg.err { color: var(--warn); } .codebox .code-msg.ok { color: var(--ok); }
   .codebox.shake { animation: shake .35s; }
   @keyframes shake { 25% { transform: translateX(calc(-50% - 8px)); } 75% { transform: translateX(calc(-50% + 8px)); } }
-  .home.need-code .hero-cta { visibility: hidden; }
-  .fs-btn { position: absolute; z-index: 2; top: max(18px, env(safe-area-inset-top, 0px)); right: max(18px, env(safe-area-inset-right, 0px)); width: 46px; height: 46px; border-radius: 999px;
+  .home.need-code .hero-cta, .home.code-open .hero-cta { visibility: hidden; }
+  .codebox .code-close { justify-self: center; border: 0; background: none; color: var(--mute); font-size: 14px; padding: 4px 12px; cursor: pointer; }
+  .code-btn { position: absolute; z-index: 5; top: max(18px, env(safe-area-inset-top, 0px)); left: max(18px, env(safe-area-inset-left, 0px)); width: 46px; height: 46px; border-radius: 999px;
+              border: 0; display: grid; place-items: center; background: rgba(246,241,232,.7); color: #3A3029; cursor: pointer; }
+  .code-btn svg { width: 22px; height: 22px; }
+  .fs-btn { position: absolute; z-index: 5; top: max(18px, env(safe-area-inset-top, 0px)); right: max(18px, env(safe-area-inset-right, 0px)); width: 46px; height: 46px; border-radius: 999px;
             border: 0; display: grid; place-items: center; background: rgba(246,241,232,.7); color: #3A3029; cursor: pointer; }
   .fs-btn svg { width: 22px; height: 22px; }
   @media (orientation: portrait) {
@@ -421,10 +425,14 @@
   </div>
   <form class="codebox" id="codeBox" hidden autocomplete="off">
     <b>운영 코드</b>
-    <p>사진을 QR로 받으려면 이 기기에서 처음 한 번 운영 코드를 넣어 주세요.</p>
+    <p id="codeState">사진을 QR로 받으려면 이 기기에서 처음 한 번 운영 코드를 넣어 주세요.</p>
     <div class="code-row"><input id="codeInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="운영 코드" aria-label="운영 코드"><button type="submit" id="codeOk">확인</button></div>
     <p class="code-msg" id="codeMsg" role="status"></p>
+    <button type="button" class="code-close" id="codeClose" hidden>닫기</button>
   </form>
+  <button class="code-btn" id="codeBtn" type="button" aria-label="운영 코드">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+  </button>
   <button class="fs-btn" id="fsBtn" type="button" aria-label="전체 화면" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
@@ -1342,7 +1350,7 @@
   function homeVideoPlay(on) { if (!homeVidOk) return; if (on) vids[vOn].play().catch(() => {}); else { vids.forEach(v => v.pause()); if (introPhase) { introPhase = false; intro.pause(); intro.hidden = true; $("homeSkip").hidden = true; } } }
   function showHome(on) {
     $("home").hidden = !on;
-    if (on) { if (!startIntro()) { homeVideoPlay(true); heroIntro(); } syncFs(); } else homeVideoPlay(false);
+    if (on) { if (!startIntro()) { homeVideoPlay(true); heroIntro(); } syncFs(); if (codeOpen) { codeOpen = false; syncCode(); } } else homeVideoPlay(false);
     if (on) { $("pick").hidden = true; layout = defLayout(); frame = defStyle(); applyLayout(); reset(); look = LOOKS[C.look] ? C.look : "none"; placed = []; selIdx = -1; renderStickers(); renderChips(); previewLook(); }
   }
   function goHome() { if (!busy) showHome(true); }
@@ -1354,6 +1362,7 @@
   $("nextBtn").onclick = () => { if (!busy) showHome(true); };   // 다음 사람: 맨 처음 시작 영상부터
   $("home").onclick = () => {
     if (introPhase) { toLoop(); return; }   // 시작 영상 중에는 건너뛰기
+    if (codeOpen && S.eventCode) { $("codeClose").click(); return; }   // 코드 창이 열려 있으면 먼저 닫기
     if (!S.eventCode) { $("codeInput").focus(); $("codeBox").classList.remove("shake"); void $("codeBox").offsetWidth; $("codeBox").classList.add("shake"); return; }   // 운영 코드부터
     if (swapping) return; unlockAudio(); showHome(false); showPick(true); };
   $("backBtn").onclick = () => { if (!busy) showPick(true); };
@@ -1391,7 +1400,17 @@
   // ---- 운영 설정: 행사 코드가 없으면 버튼 표시, 있으면 오른쪽 위 모서리 길게 누르기 ----
   function syncGear() { $("gear").hidden = !!S.eventCode; syncCode(); }
   // 시작화면 운영 코드: 코드가 없으면 입력 창을 띄우고, 서버에서 맞는지 확인한 뒤 저장
-  function syncCode() { const need = !S.eventCode; $("codeBox").hidden = !need; $("home").classList.toggle("need-code", need); }
+  let codeOpen = false;   // 코드가 있어도 왼쪽 위 자물쇠 버튼으로 열어 바꿀 수 있음
+  function syncCode() {
+    const need = !S.eventCode, show = need || codeOpen;
+    $("codeBox").hidden = !show; $("codeClose").hidden = need;
+    $("home").classList.toggle("need-code", need); $("home").classList.toggle("code-open", codeOpen && !need);
+    $("codeState").textContent = need ? "사진을 QR로 받으려면 이 기기에서 처음 한 번 운영 코드를 넣어 주세요."
+      : "이 기기에 운영 코드가 저장돼 있어요. 바꾸려면 새 코드를 넣어 주세요.";
+  }
+  $("codeBtn").onclick = (e) => { e.stopPropagation(); codeOpen = !codeOpen; $("codeMsg").textContent = ""; syncCode(); if (codeOpen) $("codeInput").focus(); };
+  $("codeBtn").addEventListener("pointerdown", (e) => e.stopPropagation());
+  $("codeClose").onclick = () => { codeOpen = false; $("codeInput").value = ""; $("codeMsg").textContent = ""; syncCode(); };
   ["pointerdown", "click"].forEach(t => $("codeBox").addEventListener(t, (e) => e.stopPropagation()));
   $("codeBox").onsubmit = async (e) => {
     e.preventDefault();
@@ -1407,7 +1426,7 @@
     if (ok === false) { msg.className = "code-msg err"; msg.textContent = "운영 코드가 맞지 않아요. 다시 확인해 주세요."; $("codeBox").classList.remove("shake"); void $("codeBox").offsetWidth; $("codeBox").classList.add("shake"); $("codeInput").select(); return; }
     S.eventCode = code; store.set(S); $("codeInput").value = "";
     msg.className = "code-msg ok"; msg.textContent = ok ? "확인됐어요." : "저장했어요.";
-    setTimeout(() => { msg.textContent = ""; syncGear(); }, 700);
+    setTimeout(() => { msg.textContent = ""; codeOpen = false; syncGear(); }, 700);
   };
   async function openSettings() {
     $("setCount").value = S.countdown; $("setMirror").checked = !!S.mirror; $("setPick").checked = !!S.pickMore;
